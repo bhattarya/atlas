@@ -25,14 +25,13 @@ export default function App() {
   const [seats, setSeats] = useState(5)
   const pilotLaunched = useRef(false)
 
-  // Fetch prof + grade metadata once on mount
   useEffect(() => {
     fetchCourseMetadata()
       .then(setCourseMetadata)
       .catch(err => console.warn('Metadata fetch failed:', err))
   }, [])
 
-  // Seat countdown — only starts after audit is loaded
+  // Seat countdown — starts after audit loads
   useEffect(() => {
     if (!mapData) return
     const id = setInterval(() => {
@@ -49,11 +48,10 @@ export default function App() {
     }
   }, [seats, mapData])
 
-  // Open SSE stream once sessionId is set
+  // SSE stream once sessionId is set
   useEffect(() => {
     if (!sessionId) return
     const es = new EventSource(`/api/pilot-stream/${sessionId}`)
-
     es.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data)
@@ -68,11 +66,8 @@ export default function App() {
           setPilotSteps(prev => [...prev, { text: `Error: ${data.message}`, error: true }])
           es.close()
         }
-      } catch {
-        // ignore malformed events
-      }
+      } catch { /* ignore malformed */ }
     }
-
     es.onerror = () => es.close()
     return () => es.close()
   }, [sessionId])
@@ -126,15 +121,12 @@ export default function App() {
   const handlePilotConfirm = useCallback(async () => {
     if (!sessionId) return
     await confirmPilot(sessionId)
-    // Mark CMSC 441 as completed on the map
     setMapData(prev => {
       if (!prev) return prev
       return {
         ...prev,
         courses: prev.courses.map(c =>
-          c.id === 'CMSC 441'
-            ? { ...c, status: 'completed', is_bottleneck: false }
-            : c
+          c.id === 'CMSC 441' ? { ...c, status: 'completed', is_bottleneck: false } : c
         ),
         bottlenecks: (prev.bottlenecks ?? []).filter(b => b !== 'CMSC 441'),
       }
@@ -142,18 +134,29 @@ export default function App() {
   }, [sessionId])
 
   return (
-    <div className="flex flex-col h-screen bg-[#0a0e1a] text-[#e5e7eb] overflow-hidden">
+    <div className="flex flex-col h-screen bg-[#f7f6f1] text-[#111111] overflow-hidden">
       <TopBar onUpload={handleAuditUpload} loading={loading} mapData={mapData} />
       <CountdownBanner />
-      <StatsBar mapData={mapData} seats={seats} />
-      <MinorToggle selected={addedMinor} onChange={handleMinorChange} />
+
+      {/* Subbar: stats + minor toggle */}
+      <div className="flex items-center justify-between px-5 border-b border-[#e8e7e0] bg-white min-h-[36px]">
+        <StatsBar mapData={mapData} seats={seats} />
+        <MinorToggle selected={addedMinor} onChange={handleMinorChange} />
+      </div>
+
       {parseError && (
-        <div className="mx-6 mt-3 px-4 py-2 rounded-lg bg-[#450a0a] border border-[#ef4444] text-[#fca5a5] text-sm">
+        <div className="mx-5 mt-3 px-4 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
           {parseError}
         </div>
       )}
+
       <div className="flex flex-1 overflow-hidden relative">
-        <MapView mapData={mapData} loading={loading} onCourseSelect={setSelectedCourse} />
+        <MapView
+          mapData={mapData}
+          loading={loading}
+          onCourseSelect={setSelectedCourse}
+          selectedId={selectedCourse?.id}
+        />
         {selectedCourse && (
           <CourseDrawer
             course={selectedCourse}
@@ -162,7 +165,9 @@ export default function App() {
           />
         )}
       </div>
+
       <PilotBar mapData={mapData} seats={seats} onLaunch={handlePilotStart} />
+
       {pilotActive && (
         <PilotPanel
           steps={pilotSteps}

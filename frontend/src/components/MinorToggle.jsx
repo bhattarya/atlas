@@ -2,29 +2,21 @@ const MINORS = ['Finance', 'Entrepreneurship']
 
 export default function MinorToggle({ selected, onChange }) {
   return (
-    <div className="flex items-center gap-2 px-6 py-2 bg-[#111827] border-b border-[#1f2937]">
-      <span className="text-xs text-[#6b7280]">Add minor:</span>
+    <div className="flex items-center gap-1.5 py-1.5">
+      <span className="text-xs text-[#999] mr-1">Minor:</span>
       {MINORS.map(m => (
         <button
           key={m}
           onClick={() => onChange(selected === m ? null : m)}
-          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+          className={`px-2.5 py-0.5 rounded-full text-xs font-medium border transition-all ${
             selected === m
-              ? 'bg-[#3b82f6] text-white'
-              : 'bg-[#1f2937] text-[#9ca3af] hover:bg-[#374151]'
+              ? 'bg-black text-[#FFC300] border-black'
+              : 'bg-white text-[#555] border-[#ddd] hover:border-black hover:text-black'
           }`}
         >
           {m}
         </button>
       ))}
-      {selected && (
-        <button
-          onClick={() => onChange(null)}
-          className="px-3 py-1 rounded-full text-xs font-medium bg-transparent text-[#6b7280] hover:text-white"
-        >
-          Clear
-        </button>
-      )}
     </div>
   )
 }

@@ -4,17 +4,32 @@ export default {
   theme: {
     extend: {
       colors: {
-        atlas: {
-          bg: '#0a0e1a',
-          surface: '#111827',
-          border: '#1f2937',
-          accent: '#3b82f6',
-          warn: '#f59e0b',
-          danger: '#ef4444',
-          success: '#10b981',
-          text: '#e5e7eb',
-          muted: '#6b7280',
+        umbc: {
+          black: '#000000',
+          gold: '#FFC300',
+          'gold-light': '#FFD84D',
+          'gold-dim': '#CC9C00',
         },
+        surface: {
+          bg: '#f7f6f1',
+          card: '#ffffff',
+          muted: '#f0efe9',
+          border: '#e8e7e0',
+        },
+        ink: {
+          DEFAULT: '#111111',
+          secondary: '#555555',
+          muted: '#999999',
+          light: '#cccccc',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+      boxShadow: {
+        card: '0 1px 4px 0 rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.05)',
+        panel: '-4px 0 40px 0 rgba(0,0,0,0.10)',
+        node: '0 2px 8px 0 rgba(0,0,0,0.12)',
       },
     },
   },
