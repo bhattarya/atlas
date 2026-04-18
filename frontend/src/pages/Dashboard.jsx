@@ -1,18 +1,14 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import TopBar from '../components/TopBar'
-import StatsBar from '../components/StatsBar'
 import MapView from '../components/MapView'
 import CourseDrawer from '../components/CourseDrawer'
 import PilotBar from '../components/PilotBar'
 import PilotPanel from '../components/PilotPanel'
-import CountdownBanner from '../components/CountdownBanner'
-import MinorToggle from '../components/MinorToggle'
 import DragPlanner from '../components/DragPlanner'
 import { parseAudit, parseCached, fetchCourseMetadata, startPilot, confirmPilot } from '../lib/api'
 
-const EMPTY_SEMESTERS = () => ({
-  'Fall 2026': [], 'Spring 2027': [], 'Fall 2027': [], 'Spring 2028': [],
-})
+const PLANNER_SEMS = ['Fall 2026', 'Spring 2027', 'Fall 2027', 'Spring 2028']
+const EMPTY_SEMS = () => Object.fromEntries(PLANNER_SEMS.map(s => [s, []]))
 
 export default function Dashboard() {
   const [mapData, setMapData] = useState(null)
@@ -22,14 +18,12 @@ export default function Dashboard() {
   const [sessionId, setSessionId] = useState(null)
   const [pilotSteps, setPilotSteps] = useState([])
   const [pilotDone, setPilotDone] = useState(false)
-  const [addedMinor, setAddedMinor] = useState(null)
   const [auditFile, setAuditFile] = useState(null)
   const [transcriptFile, setTranscriptFile] = useState(null)
   const [courseMetadata, setCourseMetadata] = useState(null)
   const [parseError, setParseError] = useState(null)
   const [seats, setSeats] = useState(5)
-  const [plannerState, setPlannerState] = useState({ bank: [], semesters: EMPTY_SEMESTERS() })
-  const pilotLaunched = useRef(false)
+  const [plannerState, setPlannerState] = useState({ bank: [], semesters: EMPTY_SEMS() })
 
   useEffect(() => {
     fetchCourseMetadata()
@@ -37,6 +31,7 @@ export default function Dashboard() {
       .catch(err => console.warn('Metadata fetch failed:', err))
   }, [])
 
+  // Seat countdown starts after audit loads
   useEffect(() => {
     if (!mapData) return
     const id = setInterval(() => {
@@ -45,13 +40,22 @@ export default function Dashboard() {
     return () => clearInterval(id)
   }, [mapData])
 
+  // Seed planner when audit loads
   useEffect(() => {
-    if (seats <= 2 && mapData && !pilotLaunched.current) {
-      pilotLaunched.current = true
-      handlePilotStart()
-    }
-  }, [seats, mapData])
+    if (!mapData?.courses) return
+    const bank = []
+    const semesters = EMPTY_SEMS()
+    mapData.courses
+      .filter(c => c.status !== 'completed' && c.status !== 'in_progress')
+      .forEach(c => {
+        const sem = PLANNER_SEMS.find(s => s === c.planned_semester)
+        if (sem) semesters[sem].push(c)
+        else bank.push(c)
+      })
+    setPlannerState({ bank, semesters })
+  }, [mapData])
 
+  // SSE stream
   useEffect(() => {
     if (!sessionId) return
     const es = new EventSource(`/api/pilot-stream/${sessionId}`)
@@ -81,10 +85,8 @@ export default function Dashboard() {
     setParseError(null)
     setLoading(true)
     try {
-      const data = await parseAudit(audit, transcript, addedMinor)
+      const data = await parseAudit(audit, transcript, null)
       setMapData(data)
-      const remaining = (data.courses ?? []).filter(c => c.status === 'needed')
-      setPlannerState({ bank: remaining, semesters: EMPTY_SEMESTERS() })
     } catch (err) {
       setParseError(err.message?.includes('422')
         ? 'Not a UMBC degree audit. Please upload your audit PDF.'
@@ -92,23 +94,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
-  }, [addedMinor])
-
-  const handleMinorChange = useCallback(async (minor) => {
-    setAddedMinor(minor)
-    if (!mapData) return
-    setLoading(true)
-    try {
-      const data = auditFile
-        ? await parseAudit(auditFile, transcriptFile, minor)
-        : await parseCached(minor)
-      setMapData(data)
-    } catch (err) {
-      console.error('Minor toggle failed:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [mapData, auditFile, transcriptFile])
+  }, [])
 
   const handlePilotStart = useCallback(async () => {
     try {
@@ -120,31 +106,6 @@ export default function Dashboard() {
     } catch (err) {
       console.error('Pilot start failed:', err)
     }
-  }, [])
-
-  const handlePlannerDrop = useCallback((courseId, source, target, course) => {
-    setPlannerState(prev => {
-      const next = {
-        bank: [...prev.bank],
-        semesters: Object.fromEntries(Object.entries(prev.semesters).map(([k, v]) => [k, [...v]])),
-      }
-      if (source === 'bank') next.bank = next.bank.filter(c => c.id !== courseId)
-      else next.semesters[source] = next.semesters[source].filter(c => c.id !== courseId)
-      if (target === 'bank') next.bank.push(course)
-      else next.semesters[target].push(course)
-      return next
-    })
-    setMapData(prev => {
-      if (!prev) return prev
-      return {
-        ...prev,
-        courses: prev.courses.map(c => {
-          if (c.id !== courseId) return c
-          if (target === 'bank') { const { planned_semester, ...rest } = c; return rest }
-          return { ...c, planned_semester: target }
-        }),
-      }
-    })
   }, [])
 
   const handlePilotConfirm = useCallback(async () => {
@@ -159,15 +120,27 @@ export default function Dashboard() {
     } : prev)
   }, [sessionId])
 
+  const handlePlannerDrop = useCallback((courseId, source, target, course) => {
+    setPlannerState(prev => {
+      const next = {
+        bank: [...prev.bank],
+        semesters: Object.fromEntries(
+          Object.entries(prev.semesters).map(([k, v]) => [k, [...v]])
+        ),
+      }
+      // Remove from source
+      if (source === 'bank') next.bank = next.bank.filter(c => c.id !== courseId)
+      else next.semesters[source] = next.semesters[source].filter(c => c.id !== courseId)
+      // Add to target
+      if (target === 'bank') next.bank.push(course)
+      else next.semesters[target] = [...(next.semesters[target] ?? []), course]
+      return next
+    })
+  }, [])
+
   return (
     <div className="flex flex-col h-screen bg-[#f7f6f1] text-[#111111] overflow-hidden">
       <TopBar onUpload={handleAuditUpload} loading={loading} mapData={mapData} />
-      <CountdownBanner />
-
-      <div className="flex items-center justify-between px-5 border-b border-[#e8e7e0] bg-white min-h-[36px]">
-        <StatsBar mapData={mapData} seats={seats} />
-        <MinorToggle selected={addedMinor} onChange={handleMinorChange} />
-      </div>
 
       {parseError && (
         <div className="mx-5 mt-3 px-4 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
@@ -175,7 +148,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="flex flex-col flex-1 overflow-hidden">
       <div className="flex flex-1 overflow-hidden relative min-h-0">
         <MapView
           mapData={mapData}
@@ -192,8 +164,10 @@ export default function Dashboard() {
           />
         )}
       </div>
-      {mapData && <DragPlanner plannerState={plannerState} onDrop={handlePlannerDrop} />}
-      </div>
+
+      {mapData && (
+        <DragPlanner plannerState={plannerState} onDrop={handlePlannerDrop} />
+      )}
 
       <PilotBar mapData={mapData} seats={seats} onLaunch={handlePilotStart} />
 

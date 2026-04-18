@@ -48,21 +48,19 @@ def course_metadata():
 @app.post("/api/parse")
 async def parse(
     audit: UploadFile = File(...),
-    transcript: UploadFile = File(None),
-    added_minor: str = Form(None),
+    transcript: Optional[UploadFile] = File(None),
+    added_minor: Optional[str] = Form(None),
 ):
     audit_bytes = await audit.read()
     transcript_bytes = await transcript.read() if transcript else None
     try:
         result = parse_audit(audit_bytes, transcript_bytes, added_minor)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
     except Exception:
         cached_path = DATA_DIR / "cached_audit.json"
         if cached_path.exists():
             result = json.loads(cached_path.read_text())
         else:
-            raise
+            raise HTTPException(status_code=500, detail="Parse failed and no cached audit available")
     (DATA_DIR / "cached_audit.json").write_text(json.dumps(result))
     return result
 
