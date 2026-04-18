@@ -1,15 +1,6 @@
-import { useState, useEffect } from 'react'
 import { BookOpen, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
 
-export default function StatsBar({ mapData }) {
-  const [seats, setSeats] = useState(5)
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSeats(prev => Math.max(0, prev - Math.floor(Math.random() * 2)))
-    }, 8000)
-    return () => clearInterval(interval)
-  }, [])
+export default function StatsBar({ mapData, seats = 5 }) {
 
   if (!mapData) return null
 

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import TopBar from './components/TopBar'
 import StatsBar from './components/StatsBar'
 import MapView from './components/MapView'
@@ -15,17 +15,67 @@ export default function App() {
   const [selectedCourse, setSelectedCourse] = useState(null)
   const [pilotActive, setPilotActive] = useState(false)
   const [sessionId, setSessionId] = useState(null)
+  const [pilotSteps, setPilotSteps] = useState([])
+  const [pilotDone, setPilotDone] = useState(false)
   const [addedMinor, setAddedMinor] = useState(null)
   const [auditFile, setAuditFile] = useState(null)
   const [transcriptFile, setTranscriptFile] = useState(null)
   const [courseMetadata, setCourseMetadata] = useState(null)
   const [parseError, setParseError] = useState(null)
+  const [seats, setSeats] = useState(5)
+  const pilotLaunched = useRef(false)
 
+  // Fetch prof + grade metadata once on mount
   useEffect(() => {
     fetchCourseMetadata()
       .then(setCourseMetadata)
-      .catch(err => console.warn('Metadata fetch failed (backend may not be running):', err))
+      .catch(err => console.warn('Metadata fetch failed:', err))
   }, [])
+
+  // Seat countdown — only starts after audit is loaded
+  useEffect(() => {
+    if (!mapData) return
+    const id = setInterval(() => {
+      setSeats(prev => Math.max(0, prev - Math.floor(Math.random() * 2)))
+    }, 8000)
+    return () => clearInterval(id)
+  }, [mapData])
+
+  // Auto-launch Pilot when seats hit 2
+  useEffect(() => {
+    if (seats <= 2 && mapData && !pilotLaunched.current) {
+      pilotLaunched.current = true
+      handlePilotStart()
+    }
+  }, [seats, mapData])
+
+  // Open SSE stream once sessionId is set
+  useEffect(() => {
+    if (!sessionId) return
+    const es = new EventSource(`/api/pilot-stream/${sessionId}`)
+
+    es.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data)
+        if (data.type === 'ping') return
+        if (data.type === 'action') {
+          setPilotSteps(prev => [...prev, { text: data.description, done: true }])
+        } else if (data.type === 'waiting') {
+          setPilotSteps(prev => [...prev, { text: data.description, waiting: true }])
+          setPilotDone(true)
+          es.close()
+        } else if (data.type === 'error') {
+          setPilotSteps(prev => [...prev, { text: `Error: ${data.message}`, error: true }])
+          es.close()
+        }
+      } catch {
+        // ignore malformed events
+      }
+    }
+
+    es.onerror = () => es.close()
+    return () => es.close()
+  }, [sessionId])
 
   const handleAuditUpload = useCallback(async (audit, transcript) => {
     setAuditFile(audit)
@@ -36,9 +86,10 @@ export default function App() {
       const data = await parseAudit(audit, transcript, addedMinor)
       setMapData(data)
     } catch (err) {
-      const msg = err.message?.includes('422') ? 'Not a UMBC degree audit. Please upload your audit PDF.' : 'Parse failed — check backend logs.'
+      const msg = err.message?.includes('422')
+        ? 'Not a UMBC degree audit. Please upload your audit PDF.'
+        : 'Parse failed — check backend logs.'
       setParseError(msg)
-      console.error('Parse failed:', err)
     } finally {
       setLoading(false)
     }
@@ -49,7 +100,6 @@ export default function App() {
     if (!mapData) return
     setLoading(true)
     try {
-      // Re-run full parse with minor context if we have the file, else use cached
       const data = auditFile
         ? await parseAudit(auditFile, transcriptFile, minor)
         : await parseCached(minor)
@@ -62,21 +112,40 @@ export default function App() {
   }, [mapData, auditFile, transcriptFile])
 
   const handlePilotStart = useCallback(async () => {
-    const { session_id } = await startPilot()
-    setSessionId(session_id)
-    setPilotActive(true)
+    try {
+      const { session_id } = await startPilot()
+      setSessionId(session_id)
+      setPilotSteps([])
+      setPilotDone(false)
+      setPilotActive(true)
+    } catch (err) {
+      console.error('Pilot start failed:', err)
+    }
   }, [])
 
   const handlePilotConfirm = useCallback(async () => {
     if (!sessionId) return
     await confirmPilot(sessionId)
+    // Mark CMSC 441 as completed on the map
+    setMapData(prev => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        courses: prev.courses.map(c =>
+          c.id === 'CMSC 441'
+            ? { ...c, status: 'completed', is_bottleneck: false }
+            : c
+        ),
+        bottlenecks: (prev.bottlenecks ?? []).filter(b => b !== 'CMSC 441'),
+      }
+    })
   }, [sessionId])
 
   return (
     <div className="flex flex-col h-screen bg-[#0a0e1a] text-[#e5e7eb] overflow-hidden">
       <TopBar onUpload={handleAuditUpload} loading={loading} mapData={mapData} />
       <CountdownBanner />
-      <StatsBar mapData={mapData} />
+      <StatsBar mapData={mapData} seats={seats} />
       <MinorToggle selected={addedMinor} onChange={handleMinorChange} />
       {parseError && (
         <div className="mx-6 mt-3 px-4 py-2 rounded-lg bg-[#450a0a] border border-[#ef4444] text-[#fca5a5] text-sm">
@@ -84,11 +153,7 @@ export default function App() {
         </div>
       )}
       <div className="flex flex-1 overflow-hidden relative">
-        <MapView
-          mapData={mapData}
-          loading={loading}
-          onCourseSelect={setSelectedCourse}
-        />
+        <MapView mapData={mapData} loading={loading} onCourseSelect={setSelectedCourse} />
         {selectedCourse && (
           <CourseDrawer
             course={selectedCourse}
@@ -97,10 +162,11 @@ export default function App() {
           />
         )}
       </div>
-      <PilotBar mapData={mapData} onLaunch={handlePilotStart} />
+      <PilotBar mapData={mapData} seats={seats} onLaunch={handlePilotStart} />
       {pilotActive && (
         <PilotPanel
-          sessionId={sessionId}
+          steps={pilotSteps}
+          done={pilotDone}
           onConfirm={handlePilotConfirm}
           onClose={() => setPilotActive(false)}
         />
