@@ -1,116 +1,195 @@
 import { useMemo } from 'react'
 import { Loader2 } from 'lucide-react'
 
-const NODE_W = 140
-const NODE_H = 52
-const COL_GAP = 200
-const ROW_GAP = 80
+const R = 46          // node radius
+const COL_GAP = 220   // horizontal distance between column centers
+const ROW_GAP = 120   // vertical distance between row centers
+const PAD = 80        // canvas padding
 
-export default function MapView({ mapData, loading, onCourseSelect }) {
+export default function MapView({ mapData, loading, onCourseSelect, selectedId }) {
   const { nodes, edges, viewBox } = useMemo(() => buildGraph(mapData), [mapData])
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <Loader2 size={40} className="animate-spin text-[#3b82f6]" />
-        <span className="ml-3 text-[#6b7280]">Parsing audit…</span>
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 bg-[#f7f6f1]">
+        <Loader2 size={32} className="animate-spin text-[#FFC300]" />
+        <p className="text-sm text-[#888]">Parsing audit with Gemini…</p>
       </div>
     )
   }
 
   if (!mapData) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 text-[#6b7280]">
-        <p className="text-lg">Drop your degree audit PDF to begin.</p>
-        <p className="text-sm">Supports CS, IS, CE + Finance / Entrepreneurship minors</p>
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 bg-[#f7f6f1] select-none">
+        <div className="w-16 h-16 rounded-full bg-[#FFC300]/20 flex items-center justify-center">
+          <span className="text-3xl">🗺</span>
+        </div>
+        <p className="text-base font-medium text-[#333]">Drop your degree audit PDF to begin</p>
+        <p className="text-sm text-[#999]">Supports CS, IS, CE · Finance / Entrepreneurship minors</p>
       </div>
     )
   }
 
   return (
-    <div className="flex-1 overflow-auto bg-[#0a0e1a] p-4">
+    <div className="flex-1 overflow-auto bg-[#f7f6f1]">
       <svg
         viewBox={viewBox}
         width="100%"
-        style={{ minHeight: '100%' }}
+        style={{ minHeight: '100%', minWidth: '600px' }}
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
-          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-            <path d="M0,0 L0,6 L8,3 z" fill="#374151" />
+          <marker id="arrowhead" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+            <path d="M0,0 L0,7 L7,3.5 z" fill="#c8c6be" />
           </marker>
+          {/* Gold glow for bottleneck */}
+          <filter id="gold-glow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
         </defs>
+
+        {/* Edges first (behind nodes) */}
         {edges.map((e, i) => (
-          <line
+          <path
             key={i}
-            x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}
-            stroke="#374151"
+            d={e.path}
+            fill="none"
+            stroke="#d0cfc8"
             strokeWidth="1.5"
-            markerEnd="url(#arrow)"
+            markerEnd="url(#arrowhead)"
           />
         ))}
+
+        {/* Nodes */}
         {nodes.map(node => (
-          <CourseNode key={node.id} node={node} onClick={() => onCourseSelect(node)} />
+          <CourseNode
+            key={node.id}
+            node={node}
+            selected={selectedId === node.id}
+            onClick={() => onCourseSelect(node)}
+          />
         ))}
       </svg>
     </div>
   )
 }
 
-function CourseNode({ node, onClick }) {
-  const fill = node.status === 'completed'
-    ? '#064e3b'
-    : node.is_bottleneck
-    ? '#451a03'
-    : node.status === 'in_progress'
-    ? '#1e3a5f'
-    : '#1f2937'
+function CourseNode({ node, selected, onClick }) {
+  const cx = node.x
+  const cy = node.y
 
-  const border = node.status === 'completed'
-    ? '#10b981'
-    : node.is_bottleneck
-    ? '#f59e0b'
-    : node.status === 'in_progress'
-    ? '#3b82f6'
-    : '#374151'
+  // Fill & stroke based on status
+  let fill = '#ffffff'
+  let stroke = '#d0cfc8'
+  let strokeWidth = 1.5
+  let textColor = '#333333'
+  let subColor = '#888888'
+
+  if (node.status === 'completed') {
+    fill = '#FFC300'
+    stroke = '#CC9C00'
+    strokeWidth = 0
+    textColor = '#000000'
+    subColor = '#6b5800'
+  } else if (node.status === 'in_progress') {
+    fill = '#fffbea'
+    stroke = '#FFC300'
+    strokeWidth = 2.5
+    textColor = '#111111'
+  } else if (node.is_bottleneck) {
+    fill = '#fff5f5'
+    stroke = '#f87171'
+    strokeWidth = 2
+  }
+
+  if (selected) {
+    stroke = '#000000'
+    strokeWidth = 2.5
+  }
+
+  const label = node.id ?? ''
+  // Shorten name to fit in circle
+  const rawName = node.name ?? ''
+  const words = rawName.split(' ')
+  // Up to 2 lines of ~12 chars
+  let line1 = '', line2 = ''
+  let cur = ''
+  for (const w of words) {
+    if ((cur + ' ' + w).trim().length <= 12) {
+      cur = (cur + ' ' + w).trim()
+    } else {
+      if (!line1) { line1 = cur; cur = w }
+      else { line2 = cur + (cur ? ' ' : '') + w; cur = ''; break }
+    }
+  }
+  if (!line1) line1 = cur
+  else if (!line2 && cur) line2 = cur
+  if (line2.length > 14) line2 = line2.slice(0, 13) + '…'
 
   return (
     <g
-      transform={`translate(${node.x},${node.y})`}
+      className="course-node"
+      transform={`translate(${cx},${cy})`}
       onClick={onClick}
-      style={{ cursor: 'pointer' }}
+      filter={node.is_bottleneck && !selected ? 'url(#gold-glow)' : undefined}
     >
-      <rect
-        width={NODE_W}
-        height={NODE_H}
-        rx={8}
-        fill={fill}
-        stroke={border}
-        strokeWidth={node.is_bottleneck ? 2 : 1}
-      />
-      {node.is_bottleneck && (
-        <rect width={NODE_W} height={4} rx={2} fill="#f59e0b" y={0} />
+      {/* Outer ring for selected */}
+      {selected && (
+        <circle r={R + 6} fill="none" stroke="#000" strokeWidth="2" opacity="0.15" />
       )}
+
+      {/* Main circle */}
+      <circle r={R} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
+
+      {/* Bottleneck amber dot indicator */}
+      {node.is_bottleneck && (
+        <circle cx={R - 8} cy={-(R - 8)} r={7} fill="#f59e0b" stroke="white" strokeWidth="1.5" />
+      )}
+
+      {/* Spring-only pill */}
+      {node.spring_only && !node.is_bottleneck && (
+        <circle cx={R - 8} cy={-(R - 8)} r={6} fill="#FFC300" stroke="white" strokeWidth="1.5" />
+      )}
+
+      {/* Course ID */}
       <text
-        x={NODE_W / 2}
-        y={22}
+        y={line2 ? -10 : -4}
         textAnchor="middle"
-        fill="#e5e7eb"
+        fill={textColor}
         fontSize={11}
-        fontWeight="600"
-        fontFamily="monospace"
+        fontWeight="700"
+        fontFamily="Inter, system-ui, sans-serif"
+        letterSpacing="0.02em"
       >
-        {node.id}
+        {label}
       </text>
-      <text
-        x={NODE_W / 2}
-        y={38}
-        textAnchor="middle"
-        fill="#9ca3af"
-        fontSize={9}
-      >
-        {node.name?.length > 20 ? node.name.slice(0, 18) + '…' : node.name}
-      </text>
+
+      {/* Course name line 1 */}
+      {line1 && (
+        <text
+          y={line2 ? 5 : 10}
+          textAnchor="middle"
+          fill={subColor}
+          fontSize={8.5}
+          fontFamily="Inter, system-ui, sans-serif"
+        >
+          {line1}
+        </text>
+      )}
+
+      {/* Course name line 2 */}
+      {line2 && (
+        <text
+          y={17}
+          textAnchor="middle"
+          fill={subColor}
+          fontSize={8.5}
+          fontFamily="Inter, system-ui, sans-serif"
+        >
+          {line2}
+        </text>
+      )}
     </g>
   )
 }
@@ -119,10 +198,12 @@ function buildGraph(mapData) {
   if (!mapData?.courses) return { nodes: [], edges: [], viewBox: '0 0 800 600' }
 
   const courses = mapData.courses
-  const levelMap = {}
 
+  // Group by level column
+  const levelMap = {}
   courses.forEach(c => {
-    const lvl = c.level ?? Math.floor(parseInt(c.id?.replace(/\D/g, '') || '0') / 100)
+    const num = parseInt((c.id ?? '').replace(/\D/g, '') || '0')
+    const lvl = c.level ?? Math.floor(num / 100)
     if (!levelMap[lvl]) levelMap[lvl] = []
     levelMap[lvl].push(c)
   })
@@ -132,30 +213,36 @@ function buildGraph(mapData) {
   const posMap = {}
 
   levels.forEach((lvl, colIdx) => {
-    levelMap[lvl].forEach((c, rowIdx) => {
-      const x = colIdx * (NODE_W + COL_GAP) + 40
-      const y = rowIdx * (NODE_H + ROW_GAP) + 40
-      nodes.push({ ...c, x, y })
-      posMap[c.id] = { x: x + NODE_W / 2, y: y + NODE_H / 2 }
+    const col = levelMap[lvl]
+    col.forEach((c, rowIdx) => {
+      const totalRows = col.length
+      const cx = PAD + colIdx * COL_GAP
+      const totalHeight = (totalRows - 1) * ROW_GAP
+      const cy = PAD + rowIdx * ROW_GAP - totalHeight / 2 + (levels.length > 1 ? 80 : 0) + 200
+      nodes.push({ ...c, x: cx, y: cy })
+      posMap[c.id] = { x: cx, y: cy }
     })
   })
 
+  // Curved bezier edges
   const edges = []
   courses.forEach(c => {
     ;(c.prereqs ?? []).forEach(preId => {
-      if (posMap[preId] && posMap[c.id]) {
-        edges.push({
-          x1: posMap[preId].x,
-          y1: posMap[preId].y,
-          x2: posMap[c.id].x - NODE_W / 2,
-          y2: posMap[c.id].y,
-        })
-      }
+      const src = posMap[preId]
+      const dst = posMap[c.id]
+      if (!src || !dst) return
+      const x1 = src.x + R
+      const y1 = src.y
+      const x2 = dst.x - R - 2
+      const y2 = dst.y
+      const cx1 = x1 + (x2 - x1) * 0.45
+      const cx2 = x2 - (x2 - x1) * 0.45
+      edges.push({ path: `M${x1},${y1} C${cx1},${y1} ${cx2},${y2} ${x2},${y2}` })
     })
   })
 
-  const maxX = Math.max(...nodes.map(n => n.x)) + NODE_W + 60
-  const maxY = Math.max(...nodes.map(n => n.y)) + NODE_H + 60
+  const maxX = Math.max(...nodes.map(n => n.x)) + R + PAD
+  const maxY = Math.max(...nodes.map(n => n.y)) + R + PAD
 
   return { nodes, edges, viewBox: `0 0 ${maxX} ${maxY}` }
 }
