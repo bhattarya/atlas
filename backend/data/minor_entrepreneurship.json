@@ -1,0 +1,11 @@
+{
+  "minor": "Entrepreneurship",
+  "credits": 15,
+  "courses": [
+    {"id": "ENT 101", "name": "Introduction to Entrepreneurship", "credits": 3, "prereqs": []},
+    {"id": "ENT 215", "name": "Lean Startup Methods", "credits": 3, "prereqs": ["ENT 101"]},
+    {"id": "ENT 310", "name": "Business Model Canvas", "credits": 3, "prereqs": ["ENT 215"]},
+    {"id": "ENT 401", "name": "Venture Funding & Pitching", "credits": 3, "prereqs": ["ENT 310"], "spring_only": true},
+    {"id": "ENT 490", "name": "Startup Studio", "credits": 3, "prereqs": ["ENT 310"]}
+  ]
+}
