@@ -163,3 +163,11 @@ test-results/
 
 # OS
 .DS_Store
+
+# Firebase service account — NEVER commit this
+backend/serviceAccountKey.json
+backend/*.json.secret
+frontend/.env
+frontend/.env.local
+backend/serviceAccount.json
+backend/serviceAccountKey.json

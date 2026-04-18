@@ -390,6 +390,19 @@ function UserBubble({ text }) {
   )
 }
 
+function renderMd(text) {
+  // Escape HTML, then convert **bold** and *italic*, preserve newlines
+  const escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+  const html = escaped
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(?!\*)(.+?)\*(?!\*)/g, '<em>$1</em>')
+    .replace(/\n/g, '<br/>')
+  return html
+}
+
 function AssistantBubble({ text, error, isAction }) {
   return (
     <div className="flex items-start gap-2">
@@ -397,16 +410,15 @@ function AssistantBubble({ text, error, isAction }) {
         <Sparkles size={10} strokeWidth={2.6} className="text-black" />
       </div>
       <div
-        className={`max-w-[84%] rounded-2xl rounded-tl-md px-3 py-2 text-[12.5px] leading-relaxed whitespace-pre-wrap ${
+        className={`max-w-[84%] rounded-2xl rounded-tl-md px-3 py-2 text-[12.5px] leading-relaxed ${
           error
             ? 'bg-red-50 text-red-700 border border-red-200'
             : isAction
               ? 'bg-[#fffbe6] text-[#6b4e00] border border-[#FFD84D]'
               : 'bg-white text-[#1a1a1a] border border-[#ece9df]'
         }`}
-      >
-        {text}
-      </div>
+        dangerouslySetInnerHTML={{ __html: renderMd(text) }}
+      />
     </div>
   )
 }
