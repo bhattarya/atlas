@@ -136,6 +136,9 @@ function CourseNode({ node, selected, onClick }) {
   if (node.status === 'completed') {
     fill = '#FFC300'; stroke = '#CC9C00'; strokeWidth = 0
     textColor = '#000000'; subColor = '#7a6200'
+  } else if (node.planned_semester) {
+    fill = '#f0fdf4'; stroke = '#10b981'; strokeWidth = 2
+    textColor = '#065f46'; subColor = '#166534'
   } else if (node.status === 'in_progress') {
     fill = '#fffbea'; stroke = '#FFC300'; strokeWidth = 2.5; textColor = '#111111'
   } else if (node.is_bottleneck) {
