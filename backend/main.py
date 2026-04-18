@@ -16,6 +16,7 @@ load_dotenv()
 
 from agents.cartographer import parse_audit, amend_with_minor
 from agents.pilot import run_pilot, confirm_session
+from agents.validator import validate_placement as _validate_placement
 
 app = FastAPI(title="Atlas Backend")
 
@@ -72,6 +73,12 @@ class ParseCachedRequest(BaseModel):
     added_minor: Optional[str] = None
 
 
+class ValidatePlacementRequest(BaseModel):
+    course_code: str
+    semester: str
+    current_plan: dict  # {semester_name: [course_code, ...]}
+
+
 @app.post("/api/parse-cached")
 def parse_cached(req: ParseCachedRequest):
     cached_path = DATA_DIR / "cached_audit.json"
@@ -116,6 +123,17 @@ async def pilot_stream(session_id: str):
                 yield "data: {\"type\": \"ping\"}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+@app.post("/api/validate-placement")
+def validate_placement_endpoint(req: ValidatePlacementRequest):
+    cached_path = DATA_DIR / "cached_audit.json"
+    if not cached_path.exists():
+        return {"valid": True, "errors": [], "warnings": []}
+    audit = json.loads(cached_path.read_text())
+    all_courses = audit.get("courses", [])
+    completed = [c["id"] for c in all_courses if c.get("status") == "completed"]
+    return _validate_placement(req.course_code, req.semester, req.current_plan, completed, all_courses)
 
 
 @app.post("/api/pilot-confirm/{session_id}")
