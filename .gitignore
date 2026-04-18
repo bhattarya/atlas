@@ -169,3 +169,5 @@ backend/serviceAccountKey.json
 backend/*.json.secret
 frontend/.env
 frontend/.env.local
+backend/serviceAccount.json
+backend/serviceAccountKey.json
