@@ -56,10 +56,8 @@ async def parse(
     try:
         result = parse_audit(audit_bytes, transcript_bytes, added_minor)
     except ValueError as e:
-        # Cartographer rejected the PDF (not a UMBC audit)
         raise HTTPException(status_code=422, detail=str(e))
     except Exception:
-        # Gemini API failure — fall back to cache silently
         cached_path = DATA_DIR / "cached_audit.json"
         if cached_path.exists():
             result = json.loads(cached_path.read_text())

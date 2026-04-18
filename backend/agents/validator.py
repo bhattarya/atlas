@@ -31,34 +31,29 @@ def validate_placement(
 
     sem_lower = target_semester.lower()
 
-    # 1. Semester constraint
     if course_code in SPRING_ONLY and 'fall' in sem_lower:
         errors.append(f'{course_code} is Spring-only — cannot place in {target_semester}')
 
     if course_code in FALL_ONLY and 'spring' in sem_lower:
         errors.append(f'{course_code} is Fall-only — cannot place in {target_semester}')
 
-    # Also check spring_only flag from audit data
     if course.get('spring_only') and 'fall' in sem_lower:
         msg = f'{course_code} is Spring-only — cannot place in {target_semester}'
         if msg not in errors:
             errors.append(msg)
 
-    # 2. Prereq ordering
     target_idx = _semester_index(target_semester)
     for prereq_id in course.get('prereqs', []):
         if prereq_id in completed_courses:
             continue
         placed_in = next(
-            (sem for sem, codes in current_plan.items() if prereq_id in codes),
-            None
+            (sem for sem, codes in current_plan.items() if prereq_id in codes), None
         )
         if placed_in is None:
             errors.append(f'Prereq {prereq_id} is not completed or planned — place it first')
         elif _semester_index(placed_in) >= target_idx:
             errors.append(f'Prereq {prereq_id} must come before {target_semester}')
 
-    # 3. Credit load warning
     placed_codes = current_plan.get(target_semester, [])
     current_credits = sum(
         next((c.get('credits', 3) for c in all_courses if c['id'] == code), 3)
