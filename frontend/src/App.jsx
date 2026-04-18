@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import TopBar from './components/TopBar'
 import StatsBar from './components/StatsBar'
 import MapView from './components/MapView'
@@ -8,6 +8,8 @@ import PilotPanel from './components/PilotPanel'
 import CountdownBanner from './components/CountdownBanner'
 import MinorToggle from './components/MinorToggle'
 import DragPlanner from './components/DragPlanner'
+import AcademicTimeline from './components/AcademicTimeline'
+import AdvisorEmailModal from './components/AdvisorEmailModal'
 import { parseAudit, parseCached, fetchCourseMetadata, startPilot, confirmPilot } from './lib/api'
 
 const EMPTY_SEMESTERS = () => ({
@@ -29,7 +31,7 @@ export default function App() {
   const [parseError, setParseError] = useState(null)
   const [seats, setSeats] = useState(5)
   const [plannerState, setPlannerState] = useState({ bank: [], semesters: EMPTY_SEMESTERS() })
-  const pilotLaunched = useRef(false)
+  const [advisorOpen, setAdvisorOpen] = useState(false)
 
   useEffect(() => {
     fetchCourseMetadata()
@@ -45,14 +47,6 @@ export default function App() {
     }, 8000)
     return () => clearInterval(id)
   }, [mapData])
-
-  // Auto-launch Pilot when seats hit 2
-  useEffect(() => {
-    if (seats <= 2 && mapData && !pilotLaunched.current) {
-      pilotLaunched.current = true
-      handlePilotStart()
-    }
-  }, [seats, mapData])
 
   // SSE stream once sessionId is set
   useEffect(() => {
@@ -126,6 +120,11 @@ export default function App() {
     }
   }, [])
 
+  const handlePilotAction = useCallback((action) => {
+    if (action === 'email') { setAdvisorOpen(true); return }
+    handlePilotStart()
+  }, [handlePilotStart])
+
   const handlePlannerDrop = useCallback((courseId, source, target, course) => {
     setPlannerState(prev => {
       const next = {
@@ -190,6 +189,7 @@ export default function App() {
 
       <div className="flex flex-col flex-1 overflow-hidden">
         <div className="flex flex-1 overflow-hidden relative min-h-0">
+          <AcademicTimeline mapData={mapData} onCourseSelect={setSelectedCourse} />
           <MapView
             mapData={mapData}
             loading={loading}
@@ -209,7 +209,15 @@ export default function App() {
         )}
       </div>
 
-      <PilotBar mapData={mapData} seats={seats} onLaunch={handlePilotStart} />
+      <PilotBar mapData={mapData} seats={seats} onAction={handlePilotAction} />
+
+      {advisorOpen && (
+        <AdvisorEmailModal
+          mapData={mapData}
+          plannerState={plannerState}
+          onClose={() => setAdvisorOpen(false)}
+        />
+      )}
 
       {pilotActive && (
         <PilotPanel
