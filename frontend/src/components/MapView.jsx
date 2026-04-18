@@ -1,63 +1,205 @@
-import { useMemo, useRef, useState } from 'react'
-import { ReactFlow, Background, Controls, Handle, Position, MarkerType, BackgroundVariant } from '@xyflow/react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import {
+  ReactFlow, Background, Controls, Handle, Position, MarkerType,
+  BackgroundVariant, Panel, useNodesState, useEdgesState,
+} from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { Loader2, Upload, FileText } from 'lucide-react'
+import { Loader2, Upload, FileText, RotateCcw } from 'lucide-react'
 
-const COL_W = 195
-const ROW_H = 82
-const NODE_W = 150
-const PAD = 44
-const MAX_PER_COL = 6
+/* ── Layout constants ── */
+const BUBBLE_SIZE = 92          // diameter of circular bubble
+const COL_W = 220               // horizontal distance between year columns
+const ROW_H = 116               // vertical distance between siblings
+const PAD_X = 100               // outer horizontal padding
+const PAD_Y = 90                // outer vertical padding (room for year header)
 
-/* ── Custom node card ── */
-function CourseNode({ data }) {
-  const { id, name, status, is_bottleneck, spring_only, planned_semester, isSelected } = data
+/* ── Academic year labels for the 4 columns ── */
+const YEAR_LABELS = [
+  { label: 'Freshman', sub: '100 level' },
+  { label: 'Sophomore', sub: '200 level' },
+  { label: 'Junior', sub: '300 level' },
+  { label: 'Senior', sub: '400 level' },
+]
 
-  let bg = '#ffffff', border = '#e8e7e0', textCol = '#111', sub = '#aaa'
+/* ── Friendlier display label for placeholder elective IDs ── */
+function displayCode(id, name) {
+  if (!id) return ''
+  if (id.includes('_')) {
+    const parts = id.split('_')
+    const subj = parts[0]
+    const lvl = parts[1]?.match(/\d/)?.[0]
+    if (subj && lvl) return `${subj} ${lvl}00`
+    if (name) return name.length > 10 ? name.slice(0, 10) + '…' : name
+  }
+  return id
+}
 
-  if (status === 'completed') {
-    bg = '#FFC300'; border = '#e6ae00'; textCol = '#1a1000'; sub = '#7a6200'
-  } else if (planned_semester) {
-    bg = '#f0fdf4'; border = '#10b981'; textCol = '#065f46'; sub = '#6ee7b7'
-  } else if (is_bottleneck) {
-    bg = '#fff5f5'; border = '#fca5a5'; textCol = '#dc2626'; sub = '#fca5a5'
-  } else if (status === 'in_progress') {
-    bg = '#fffbea'; border = '#FFC300'; textCol = '#111'; sub = '#92400e'
-  } else if (spring_only) {
-    bg = '#fffbeb'; border = '#fcd34d'; textCol = '#78350f'; sub = '#d97706'
+/* ── Recursive prereq + dependent chain ── */
+function collectChain(courses, selectedId) {
+  if (!selectedId) return { prereqs: new Set(), dependents: new Set() }
+
+  const prereqMap = {}
+  const dependentMap = {}
+  courses.forEach(c => {
+    prereqMap[c.id] = c.prereqs ?? []
+    ;(c.prereqs ?? []).forEach(p => {
+      ;(dependentMap[p] ??= []).push(c.id)
+    })
+  })
+
+  const walk = (start, map) => {
+    const seen = new Set()
+    const stack = [...(map[start] ?? [])]
+    while (stack.length) {
+      const id = stack.pop()
+      if (seen.has(id)) continue
+      seen.add(id)
+      ;(map[id] ?? []).forEach(n => stack.push(n))
+    }
+    return seen
   }
 
-  const shortName = name ? (name.length > 20 ? name.slice(0, 19) + '…' : name) : id
+  return {
+    prereqs: walk(selectedId, prereqMap),
+    dependents: walk(selectedId, dependentMap),
+  }
+}
+
+/* ── Compute year-tree layout (left → right by academic year) ── */
+function computeLayout(courses) {
+  const idSet = new Set(courses.map(c => c.id))
+  const validPrereqs = c => (c.prereqs ?? []).filter(p => idSet.has(p))
+
+  // Prereq depth = longest path from any root (used as a tie-breaker within year)
+  const depths = {}
+  const visit = (id, depth, seen) => {
+    if (seen.has(id)) return
+    seen.add(id)
+    depths[id] = Math.max(depths[id] ?? 0, depth)
+    courses.forEach(other => {
+      if (validPrereqs(other).includes(id)) visit(other.id, depth + 1, new Set(seen))
+    })
+  }
+  courses.forEach(c => {
+    if (validPrereqs(c).length === 0) visit(c.id, 0, new Set())
+  })
+
+  // Group by academic year column (level 1→0, 2→1, 3→2, 4→3, 0/electives→0)
+  const yearOf = c => {
+    const lvl = c.level ?? 1
+    if (lvl <= 1) return 0
+    if (lvl >= 4) return 3
+    return lvl - 1
+  }
+
+  const layerGroups = { 0: [], 1: [], 2: [], 3: [] }
+  courses.forEach(c => {
+    layerGroups[yearOf(c)].push(c)
+  })
+
+  // Sort within column: status first (completed → in_progress → needed), then prereq depth
+  const statusOrder = { completed: 0, in_progress: 1, needed: 2 }
+  Object.values(layerGroups).forEach(arr =>
+    arr.sort((a, b) =>
+      (statusOrder[a.status] ?? 3) - (statusOrder[b.status] ?? 3) ||
+      (depths[a.id] ?? 0) - (depths[b.id] ?? 0) ||
+      a.id.localeCompare(b.id)
+    )
+  )
+
+  // Position vertically centered around y=400
+  const positions = {}
+  for (let li = 0; li < 4; li++) {
+    const group = layerGroups[li]
+    if (!group?.length) continue
+    const colCenterY = (group.length - 1) * ROW_H / 2
+    group.forEach((c, ri) => {
+      positions[c.id] = {
+        x: PAD_X + li * COL_W,
+        y: PAD_Y + ri * ROW_H - colCenterY + 360,
+      }
+    })
+  }
+
+  return { positions, layerGroups }
+}
+
+/* ── Status color palette (matches reference legend) ── */
+function statusStyle(course, isOnPath, isFaded) {
+  // status: completed → mastered (green), in_progress → building (yellow),
+  // needed → developing (orange) if bottleneck or has many dependents else not_started (gray)
+  const { status, is_bottleneck } = course
+
+  let ring, fill, text, glow
+  if (status === 'completed') {
+    ring = '#10b981'; fill = '#ecfdf5'; text = '#065f46'; glow = 'rgba(16,185,129,0.30)'
+  } else if (status === 'in_progress') {
+    ring = '#FFC300'; fill = '#fffbe6'; text = '#7a5a00'; glow = 'rgba(255,195,0,0.35)'
+  } else if (is_bottleneck) {
+    ring = '#f97316'; fill = '#fff7ed'; text = '#9a3412'; glow = 'rgba(249,115,22,0.35)'
+  } else {
+    ring = '#9ca3af'; fill = '#f5f4ee'; text = '#6b7280'; glow = 'rgba(107,114,128,0.15)'
+  }
+
+  return { ring, fill, text, glow, faded: isFaded, onPath: isOnPath }
+}
+
+/* ── Bubble node ── */
+function BubbleNode({ data }) {
+  const { id, name, status, is_bottleneck, isSelected, isOnPath, isFaded } = data
+  const s = statusStyle({ status, is_bottleneck }, isOnPath, isFaded)
+  const label = displayCode(id, name)
 
   return (
     <>
       <Handle type="target" position={Position.Left} style={{ opacity: 0, width: 1, height: 1 }} />
-      <div style={{
-        background: bg,
-        border: `1.5px solid ${isSelected ? '#000' : border}`,
-        borderRadius: 10,
-        padding: '8px 11px',
-        width: NODE_W,
-        cursor: 'pointer',
-        boxShadow: isSelected
-          ? '0 0 0 2px #000, 0 4px 12px rgba(0,0,0,0.12)'
-          : is_bottleneck
-            ? '0 2px 10px rgba(252,165,165,0.25)'
-            : '0 1px 3px rgba(0,0,0,0.06)',
-        position: 'relative',
-        userSelect: 'none',
-      }}>
-        {is_bottleneck && (
-          <span style={{ position: 'absolute', top: 5, right: 7, fontSize: 9 }}>⚠</span>
-        )}
-        {spring_only && !is_bottleneck && (
-          <span style={{ position: 'absolute', top: 5, right: 7, fontSize: 9 }}>🌸</span>
-        )}
-        <p style={{ fontFamily: 'ui-monospace,monospace', fontWeight: 700, fontSize: 10.5, color: textCol, lineHeight: 1.2 }}>
-          {id}
-        </p>
-        <p style={{ fontSize: 8.5, color: sub, marginTop: 3, lineHeight: 1.3 }}>
-          {shortName}
+      <div
+        className="atlas-bubble"
+        title={name ? `${id} — ${name}` : id}
+        style={{
+          width: BUBBLE_SIZE,
+          height: BUBBLE_SIZE,
+          borderRadius: '50%',
+          background: s.fill,
+          border: `3px solid ${s.ring}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          padding: 6,
+          cursor: 'grab',
+          opacity: isFaded ? 0.18 : 1,
+          boxShadow: isSelected
+            ? `0 0 0 4px ${s.glow}, 0 14px 32px rgba(15,23,42,0.20), inset 0 1px 0 rgba(255,255,255,0.7)`
+            : isOnPath
+              ? `0 0 0 2px ${s.glow}, 0 8px 20px ${s.glow}, inset 0 1px 0 rgba(255,255,255,0.7)`
+              : `0 4px 12px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.7)`,
+          transform: isSelected ? 'scale(1.12)' : 'scale(1)',
+          transition: 'opacity 0.2s, box-shadow 0.2s, transform 0.2s, filter 0.2s',
+          position: 'relative',
+          userSelect: 'none',
+        }}
+      >
+        {/* Glossy top — subtle bubble depth */}
+        <span style={{
+          position: 'absolute',
+          top: 6, left: '15%', right: '15%',
+          height: '32%',
+          borderRadius: '50%',
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 100%)',
+          pointerEvents: 'none',
+        }} />
+
+        <p style={{
+          fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+          fontWeight: 700,
+          fontSize: label.length > 9 ? 9 : label.length > 7 ? 10 : 11,
+          color: s.text,
+          lineHeight: 1.1,
+          zIndex: 1,
+          wordBreak: 'break-word',
+        }}>
+          {label}
         </p>
       </div>
       <Handle type="source" position={Position.Right} style={{ opacity: 0, width: 1, height: 1 }} />
@@ -65,65 +207,156 @@ function CourseNode({ data }) {
   )
 }
 
-const nodeTypes = { course: CourseNode }
+/* ── Year header node (decorative, non-draggable) ── */
+function YearHeaderNode({ data }) {
+  const { label, sub, count } = data
+  return (
+    <div
+      style={{
+        width: COL_W - 40,
+        textAlign: 'center',
+        pointerEvents: 'none',
+        userSelect: 'none',
+      }}
+    >
+      <div
+        style={{
+          display: 'inline-flex',
+          alignItems: 'baseline',
+          gap: 8,
+          padding: '6px 14px',
+          borderRadius: 999,
+          background: 'rgba(255,255,255,0.85)',
+          border: '1px solid #e8e7e0',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          backdropFilter: 'blur(6px)',
+        }}
+      >
+        <span style={{ fontSize: 11, fontWeight: 700, color: '#1a1a1a', letterSpacing: 0.3 }}>
+          {label}
+        </span>
+        <span style={{ fontSize: 9, color: '#999', fontWeight: 500 }}>{sub}</span>
+        {count > 0 && (
+          <span style={{
+            fontSize: 9,
+            fontWeight: 700,
+            color: '#666',
+            background: '#f3f1e9',
+            padding: '1px 6px',
+            borderRadius: 999,
+            tabularNums: true,
+          }}>
+            {count}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
 
-/* ── Build React Flow data from audit ── */
-function buildFlowData(mapData) {
+const nodeTypes = { bubble: BubbleNode, yearHeader: YearHeaderNode }
+
+/* ── Build flow data ── */
+function buildFlowData(mapData, manualPositions, selectedId) {
   if (!mapData?.courses) return { nodes: [], edges: [] }
 
   const courses = mapData.courses
   const bottleneckSet = new Set(mapData.bottlenecks ?? [])
+  const { prereqs, dependents } = collectChain(courses, selectedId)
+  const hasSelection = !!selectedId
 
-  const levelMap = {}
-  courses.forEach(c => {
-    const num = parseInt((c.id ?? '').replace(/\D/g, '') || '0')
-    const lvl = c.level ?? Math.floor(num / 100)
-    if (!levelMap[lvl]) levelMap[lvl] = []
-    levelMap[lvl].push(c)
+  // Compute auto layout, then override with any manual positions
+  const { positions: autoPositions, layerGroups } = computeLayout(courses)
+
+  // Year header nodes — one per column, positioned above the topmost bubble
+  const headerNodes = YEAR_LABELS.map((y, li) => {
+    const group = layerGroups[li] ?? []
+    const headerY = group.length
+      ? Math.min(...group.map(c => autoPositions[c.id]?.y ?? PAD_Y)) - 70
+      : PAD_Y - 30
+    return {
+      id: `__year_header_${li}`,
+      type: 'yearHeader',
+      position: { x: PAD_X + li * COL_W - (COL_W - 40 - BUBBLE_SIZE) / 2, y: headerY },
+      data: { label: y.label, sub: y.sub, count: group.length },
+      draggable: false,
+      selectable: false,
+      zIndex: 1,
+    }
   })
 
-  const levels = Object.keys(levelMap).sort((a, b) => +a - +b)
-  const columns = []
-  levels.forEach(lvl => {
-    const grp = levelMap[lvl]
-    for (let i = 0; i < grp.length; i += MAX_PER_COL) columns.push(grp.slice(i, i + MAX_PER_COL))
-  })
+  const nodes = courses.map(c => {
+    const pos = manualPositions[c.id] ?? autoPositions[c.id] ?? { x: 0, y: 0 }
+    const isSelected = c.id === selectedId
+    const isOnPath = isSelected || prereqs.has(c.id) || dependents.has(c.id)
+    const isFaded = hasSelection && !isOnPath
 
-  const nodes = []
-  const posMap = {}
-
-  columns.forEach((col, ci) => {
-    col.forEach((c, ri) => {
-      const x = PAD + ci * COL_W
-      const y = PAD + ri * ROW_H
-      posMap[c.id] = true
-      nodes.push({ id: c.id, type: 'course', position: { x, y }, data: c, draggable: false })
-    })
+    return {
+      id: c.id,
+      type: 'bubble',
+      position: pos,
+      data: {
+        ...c,
+        is_bottleneck: bottleneckSet.has(c.id) || c.is_bottleneck,
+        isSelected, isOnPath, isFaded,
+      },
+      draggable: true,
+      zIndex: isSelected ? 100 : isOnPath ? 50 : 10,
+    }
   })
 
   const edges = []
+  const courseSet = new Set(courses.map(c => c.id))
   courses.forEach(c => {
     ;(c.prereqs ?? []).forEach(preId => {
-      if (!posMap[preId] || !posMap[c.id]) return
-      const hot = bottleneckSet.has(c.id)
+      if (!courseSet.has(preId)) return
+
+      const inUpstream = hasSelection && (
+        (c.id === selectedId && prereqs.has(preId)) ||
+        (prereqs.has(c.id) && (prereqs.has(preId) || preId === selectedId))
+      )
+      const inDownstream = hasSelection && (
+        (preId === selectedId && dependents.has(c.id)) ||
+        (dependents.has(preId) && (dependents.has(c.id) || c.id === selectedId))
+      )
+      const onPath = inUpstream || inDownstream
+
+      let stroke, strokeWidth, opacity, animated
+      if (hasSelection) {
+        if (onPath) {
+          // Active path — bold blue (matches the reference)
+          stroke = '#3b82f6'; strokeWidth = 3; opacity = 0.95; animated = true
+        } else {
+          stroke = '#d6d4cc'; strokeWidth = 1; opacity = 0.08; animated = false
+        }
+      } else {
+        // Default — light gray, slightly thicker for bottleneck-feeding chains
+        const feedsBottleneck = bottleneckSet.has(c.id)
+        stroke = feedsBottleneck ? '#f59e0b' : '#c4c1b4'
+        strokeWidth = feedsBottleneck ? 1.6 : 1.2
+        opacity = feedsBottleneck ? 0.55 : 0.4
+        animated = false
+      }
+
       edges.push({
         id: `${preId}→${c.id}`,
         source: preId,
         target: c.id,
-        type: 'smoothstep',
-        style: {
-          stroke: hot ? '#f59e0b' : '#d6d4cc',
-          strokeWidth: hot ? 1.5 : 1,
-          opacity: hot ? 0.5 : 0.22,
+        type: 'bezier',
+        animated,
+        style: { stroke, strokeWidth, opacity },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: onPath ? 14 : 10,
+          height: onPath ? 14 : 10,
+          color: stroke,
         },
-        ...(hot && {
-          markerEnd: { type: MarkerType.ArrowClosed, width: 6, height: 6, color: '#f59e0b' },
-        }),
+        zIndex: onPath ? 30 : 1,
       })
     })
   })
 
-  return { nodes, edges }
+  return { nodes: [...headerNodes, ...nodes], edges }
 }
 
 /* ── Empty / upload state ── */
@@ -179,14 +412,53 @@ function UploadZone({ onUpload }) {
   )
 }
 
+/* ── Status counts for legend ── */
+function getStatusCounts(courses) {
+  if (!courses) return { mastered: 0, building: 0, developing: 0, notStarted: 0 }
+  let mastered = 0, building = 0, developing = 0, notStarted = 0
+  courses.forEach(c => {
+    if (c.status === 'completed') mastered++
+    else if (c.status === 'in_progress') building++
+    else if (c.is_bottleneck) developing++
+    else notStarted++
+  })
+  return { mastered, building, developing, notStarted }
+}
+
 /* ── Component ── */
 export default function MapView({ mapData, loading, onCourseSelect, selectedId, onUpload }) {
-  const { nodes: rawNodes, edges } = useMemo(() => buildFlowData(mapData), [mapData])
+  const [manualPositions, setManualPositions] = useState({})
+  const [nodes, setNodes, onNodesChange] = useNodesState([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState([])
 
-  const nodes = useMemo(
-    () => rawNodes.map(n => ({ ...n, data: { ...n.data, isSelected: n.id === selectedId } })),
-    [rawNodes, selectedId]
-  )
+  const counts = useMemo(() => getStatusCounts(mapData?.courses), [mapData])
+
+  // Recompute layout whenever inputs change
+  useEffect(() => {
+    const { nodes: n, edges: e } = buildFlowData(mapData, manualPositions, selectedId)
+    setNodes(n)
+    setEdges(e)
+  }, [mapData, manualPositions, selectedId, setNodes, setEdges])
+
+  const handleNodeDragStop = useCallback((_, node) => {
+    if (node.type !== 'bubble') return
+    setManualPositions(prev => ({ ...prev, [node.id]: node.position }))
+  }, [])
+
+  const handleNodeClick = useCallback((_, node) => {
+    if (node.type !== 'bubble') return
+    if (node.id === selectedId) onCourseSelect(null)
+    else onCourseSelect(node.data)
+  }, [selectedId, onCourseSelect])
+
+  const handlePaneClick = useCallback(() => {
+    onCourseSelect(null)
+  }, [onCourseSelect])
+
+  const handleReset = useCallback(() => {
+    setManualPositions({})
+    onCourseSelect(null)
+  }, [onCourseSelect])
 
   if (loading) {
     return (
@@ -201,30 +473,101 @@ export default function MapView({ mapData, loading, onCourseSelect, selectedId, 
     return <UploadZone onUpload={onUpload} />
   }
 
+  const hasManualEdits = Object.keys(manualPositions).length > 0
+
   return (
-    <div className="flex-1 relative" style={{ background: '#f7f6f1' }}>
+    <div className="flex-1 relative" style={{ background: '#fafaf6' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        onNodeClick={(_, node) => onCourseSelect(node.data)}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onNodeClick={handleNodeClick}
+        onNodeDragStop={handleNodeDragStop}
+        onPaneClick={handlePaneClick}
         fitView
-        fitViewOptions={{ padding: 0.15, maxZoom: 1 }}
+        fitViewOptions={{ padding: 0.12, maxZoom: 1.1 }}
         minZoom={0.2}
-        maxZoom={3}
+        maxZoom={2.5}
         proOptions={{ hideAttribution: true }}
-        nodesDraggable={false}
         nodesConnectable={false}
         selectNodesOnDrag={false}
         panOnScroll
         zoomOnScroll={false}
       >
-        <Background color="#dedad2" variant={BackgroundVariant.Dots} gap={22} size={1.2} />
+        <Background color="#dedad2" variant={BackgroundVariant.Dots} gap={22} size={1} />
         <Controls
           showInteractive={false}
-          style={{ left: 'auto', right: 12, bottom: 12, top: 'auto', borderRadius: 8, boxShadow: '0 1px 6px rgba(0,0,0,0.08)' }}
+          style={{ left: 'auto', right: 12, bottom: 80, top: 'auto', borderRadius: 8, boxShadow: '0 1px 6px rgba(0,0,0,0.08)' }}
         />
+
+        {/* Legend — top-left, matches reference */}
+        <Panel position="top-left" style={{ margin: 14 }}>
+          <div className="bg-white rounded-xl border border-[#e8e7e0] shadow-sm overflow-hidden">
+            <div className="flex items-center gap-2 px-3.5 py-2 border-b border-[#f0efe9]">
+              <svg width="20" height="10" viewBox="0 0 20 10">
+                <line x1="2" y1="5" x2="14" y2="5" stroke="#3b82f6" strokeWidth="1.6" />
+                <polygon points="13,2 18,5 13,8" fill="#3b82f6" />
+              </svg>
+              <span className="text-[10px] font-semibold text-[#555]">Prerequisite</span>
+            </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 px-3.5 py-2.5">
+              <LegendDot color="#10b981" label="Mastered" />
+              <LegendDot color="#FFC300" label="Building" />
+              <LegendDot color="#f97316" label="Developing" />
+              <LegendDot color="#9ca3af" label="Not Started" />
+            </div>
+          </div>
+        </Panel>
+
+        {/* Reset button when manual layout edits exist */}
+        {hasManualEdits && (
+          <Panel position="top-right" style={{ margin: 14 }}>
+            <button
+              onClick={handleReset}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-[#f7f6f1] rounded-lg border border-[#e8e7e0] shadow-sm text-[10px] font-semibold text-[#666] hover:text-[#111] transition-colors"
+            >
+              <RotateCcw size={11} />
+              Reset layout
+            </button>
+          </Panel>
+        )}
+
+        {/* Bottom legend — count pill, matches reference */}
+        <Panel position="bottom-center" style={{ margin: 16 }}>
+          <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-full border border-[#e8e7e0] shadow-md">
+            <CountPill color="#10b981" count={counts.mastered} />
+            <CountPill color="#FFC300" count={counts.building} />
+            <CountPill color="#f97316" count={counts.developing} />
+            <CountPill color="#9ca3af" count={counts.notStarted} />
+          </div>
+        </Panel>
       </ReactFlow>
+    </div>
+  )
+}
+
+function LegendDot({ color, label }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span
+        className="inline-block rounded-full"
+        style={{ width: 9, height: 9, background: color, boxShadow: `0 0 0 1.5px ${color}40` }}
+      />
+      <span className="text-[10px] text-[#555] font-medium">{label}</span>
+    </div>
+  )
+}
+
+function CountPill({ color, count }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span
+        className="inline-block rounded-full"
+        style={{ width: 8, height: 8, background: color }}
+      />
+      <span className="text-xs font-semibold text-[#222] tabular-nums">{count}</span>
     </div>
   )
 }

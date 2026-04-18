@@ -45,18 +45,16 @@ export default function TopBar({ onUpload, loading, mapData }) {
       <div className="flex items-center gap-2">
         <input ref={auditRef} type="file" accept=".pdf" className="hidden" onChange={handleFileSelect} />
         <input ref={transcriptRef} type="file" accept=".pdf" className="hidden" />
-        <button
-          onClick={() => auditRef.current.click()}
-          disabled={loading}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-all disabled:opacity-40 ${
-            mapData
-              ? 'text-[#888] hover:text-white'
-              : 'bg-[#FFC300] hover:bg-[#FFD84D] text-black'
-          }`}
-        >
-          {loading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
-          {loading ? 'Parsing…' : mapData ? 'New Audit' : 'Upload Audit'}
-        </button>
+        {(mapData || loading) && (
+          <button
+            onClick={() => auditRef.current.click()}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-all disabled:opacity-40 text-[#888] hover:text-white"
+          >
+            {loading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+            {loading ? 'Parsing…' : 'New Audit'}
+          </button>
+        )}
       </div>
     </div>
   )
