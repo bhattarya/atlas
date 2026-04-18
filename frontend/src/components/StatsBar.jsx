@@ -1,49 +1,39 @@
 import { useState, useEffect } from 'react'
-import { BookOpen, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
 
 export default function StatsBar({ mapData }) {
   const [seats, setSeats] = useState(5)
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const id = setInterval(() => {
       setSeats(prev => Math.max(0, prev - Math.floor(Math.random() * 2)))
     }, 8000)
-    return () => clearInterval(interval)
+    return () => clearInterval(id)
   }, [])
 
-  if (!mapData) return null
+  if (!mapData) return <div />
 
-  const { total_courses, completed, bottlenecks, credits_remaining } = mapData
+  const { completed, bottlenecks, credits_remaining } = mapData
 
   return (
-    <div className="flex items-center gap-6 px-6 py-2 bg-[#111827] border-b border-[#1f2937] text-sm">
-      <Stat icon={<BookOpen size={14} />} label="Remaining" value={credits_remaining ?? '—'} unit="credits" />
-      <Stat icon={<CheckCircle size={14} className="text-[#10b981]" />} label="Completed" value={completed ?? '—'} unit="courses" />
-      <Stat
-        icon={<AlertTriangle size={14} className="text-[#f59e0b]" />}
-        label="Bottlenecks"
-        value={bottlenecks?.length ?? 0}
-        unit="flagged"
-        warn={bottlenecks?.length > 0}
-      />
-      <div className="ml-auto flex items-center gap-2">
-        <Clock size={14} className={seats <= 2 ? 'text-[#ef4444]' : 'text-[#f59e0b]'} />
-        <span className={`font-mono font-bold ${seats <= 2 ? 'text-[#ef4444]' : 'text-[#f59e0b]'}`}>
-          {seats}
-        </span>
-        <span className="text-[#6b7280]">seats in CMSC 441</span>
+    <div className="flex items-center gap-4 py-1.5 text-xs text-[#555]">
+      <Chip label="Credits left" value={credits_remaining ?? '—'} />
+      <Chip label="Completed" value={completed ?? '—'} />
+      {bottlenecks?.length > 0 && (
+        <Chip label="Bottlenecks" value={bottlenecks.length} color="amber" />
+      )}
+      <div className={`flex items-center gap-1 font-medium ${seats <= 2 ? 'text-red-600' : 'text-[#111]'}`}>
+        <span className={`inline-block w-1.5 h-1.5 rounded-full ${seats <= 2 ? 'bg-red-500 animate-pulse' : 'bg-[#FFC300]'}`} />
+        <span><b>{seats}</b> seats — CMSC 441</span>
       </div>
     </div>
   )
 }
 
-function Stat({ icon, label, value, unit, warn }) {
+function Chip({ label, value, color }) {
   return (
-    <div className="flex items-center gap-1.5">
-      <span className={warn ? 'text-[#f59e0b]' : 'text-[#6b7280]'}>{icon}</span>
-      <span className="text-[#6b7280]">{label}:</span>
-      <span className={`font-semibold ${warn ? 'text-[#f59e0b]' : 'text-white'}`}>{value}</span>
-      <span className="text-[#6b7280]">{unit}</span>
-    </div>
+    <span className="flex items-center gap-1">
+      <span className="text-[#999]">{label}</span>
+      <span className={`font-semibold ${color === 'amber' ? 'text-amber-600' : 'text-[#111]'}`}>{value}</span>
+    </span>
   )
 }
