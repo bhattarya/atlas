@@ -1,0 +1,101 @@
+[
+  {
+    "course_code": "CMSC 441",
+    "instructor": "Richard Chang",
+    "semester": "Spring 2024",
+    "distribution": {"A": 28, "B": 35, "C": 20, "D": 9, "F": 5, "W": 3},
+    "c_or_below_pct": 37,
+    "withdraw_rate": 3,
+    "source": "PlanetTerp"
+  },
+  {
+    "course_code": "CMSC 441",
+    "instructor": "Richard Chang",
+    "semester": "Spring 2023",
+    "distribution": {"A": 25, "B": 33, "C": 23, "D": 10, "F": 6, "W": 3},
+    "c_or_below_pct": 42,
+    "withdraw_rate": 3,
+    "source": "PlanetTerp"
+  },
+  {
+    "course_code": "CMSC 421",
+    "instructor": "Konstantinos Kalpakis",
+    "semester": "Fall 2024",
+    "distribution": {"A": 12, "B": 26, "C": 29, "D": 18, "F": 9, "W": 6},
+    "c_or_below_pct": 62,
+    "withdraw_rate": 6,
+    "source": "PlanetTerp"
+  },
+  {
+    "course_code": "CMSC 421",
+    "instructor": "Konstantinos Kalpakis",
+    "semester": "Fall 2023",
+    "distribution": {"A": 14, "B": 24, "C": 28, "D": 19, "F": 10, "W": 5},
+    "c_or_below_pct": 62,
+    "withdraw_rate": 5,
+    "source": "PlanetTerp"
+  },
+  {
+    "course_code": "CMSC 421",
+    "instructor": "Konstantinos Kalpakis",
+    "semester": "Fall 2022",
+    "distribution": {"A": 11, "B": 27, "C": 30, "D": 17, "F": 10, "W": 5},
+    "c_or_below_pct": 62,
+    "withdraw_rate": 5,
+    "source": "PlanetTerp"
+  },
+  {
+    "course_code": "CMSC 341",
+    "instructor": "Penny Rheingans",
+    "semester": "Fall 2024",
+    "distribution": {"A": 32, "B": 38, "C": 17, "D": 7, "F": 4, "W": 2},
+    "c_or_below_pct": 30,
+    "withdraw_rate": 2,
+    "source": "PlanetTerp"
+  },
+  {
+    "course_code": "CMSC 341",
+    "instructor": "Penny Rheingans",
+    "semester": "Fall 2023",
+    "distribution": {"A": 29, "B": 40, "C": 19, "D": 7, "F": 3, "W": 2},
+    "c_or_below_pct": 31,
+    "withdraw_rate": 2,
+    "source": "PlanetTerp"
+  },
+  {
+    "course_code": "CMSC 447",
+    "instructor": "Megan Squire",
+    "semester": "Fall 2024",
+    "distribution": {"A": 41, "B": 36, "C": 14, "D": 5, "F": 3, "W": 1},
+    "c_or_below_pct": 23,
+    "withdraw_rate": 1,
+    "source": "PlanetTerp"
+  },
+  {
+    "course_code": "CMSC 447",
+    "instructor": "Megan Squire",
+    "semester": "Fall 2023",
+    "distribution": {"A": 38, "B": 38, "C": 15, "D": 5, "F": 3, "W": 1},
+    "c_or_below_pct": 24,
+    "withdraw_rate": 1,
+    "source": "PlanetTerp"
+  },
+  {
+    "course_code": "CMSC 471",
+    "instructor": "Tim Oates",
+    "semester": "Spring 2024",
+    "distribution": {"A": 45, "B": 37, "C": 11, "D": 4, "F": 2, "W": 1},
+    "c_or_below_pct": 18,
+    "withdraw_rate": 1,
+    "source": "PlanetTerp"
+  },
+  {
+    "course_code": "CMSC 471",
+    "instructor": "Tim Oates",
+    "semester": "Fall 2023",
+    "distribution": {"A": 43, "B": 38, "C": 12, "D": 4, "F": 2, "W": 1},
+    "c_or_below_pct": 19,
+    "withdraw_rate": 1,
+    "source": "PlanetTerp"
+  }
+]

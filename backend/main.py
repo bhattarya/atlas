@@ -5,7 +5,8 @@ import asyncio
 from pathlib import Path
 from dotenv import load_dotenv
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from typing import Optional
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import StreamingResponse
@@ -13,7 +14,7 @@ from pydantic import BaseModel
 
 load_dotenv()
 
-from agents.cartographer import parse_audit
+from agents.cartographer import parse_audit, amend_with_minor
 from agents.pilot import run_pilot, confirm_session
 
 app = FastAPI(title="Atlas Backend")
@@ -33,7 +34,14 @@ SESSIONS: dict[str, dict] = {}
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model": "gemini-3-flash-preview"}
+    return {"status": "ok", "model": "gemini-2.0-flash"}
+
+
+@app.get("/api/course-metadata")
+def course_metadata():
+    profs = json.loads((DATA_DIR / "profs.json").read_text())
+    grades = json.loads((DATA_DIR / "grade_distributions.json").read_text())
+    return {"profs": profs, "grades": grades}
 
 
 @app.post("/api/parse")
@@ -44,14 +52,20 @@ async def parse(
 ):
     audit_bytes = await audit.read()
     transcript_bytes = await transcript.read() if transcript else None
-    result = parse_audit(audit_bytes, transcript_bytes, added_minor)
-    # Cache for minor-toggle re-parses
+    try:
+        result = parse_audit(audit_bytes, transcript_bytes, added_minor)
+    except Exception:
+        cached_path = DATA_DIR / "cached_audit.json"
+        if cached_path.exists():
+            result = json.loads(cached_path.read_text())
+        else:
+            raise
     (DATA_DIR / "cached_audit.json").write_text(json.dumps(result))
     return result
 
 
 class ParseCachedRequest(BaseModel):
-    added_minor: str | None = None
+    added_minor: Optional[str] = None
 
 
 @app.post("/api/parse-cached")
@@ -60,27 +74,20 @@ def parse_cached(req: ParseCachedRequest):
     if not cached_path.exists():
         raise HTTPException(status_code=404, detail="No cached audit. Upload a PDF first.")
     cached = json.loads(cached_path.read_text())
-    if req.added_minor:
-        # Re-run cartographer with minor override using cached bytes placeholder
-        # In full impl, re-parse the stored bytes; here we amend the cached result
-        cached["minor"] = req.added_minor
-        cached["minor_added"] = True
-    else:
-        cached.pop("minor", None)
-        cached.pop("minor_added", None)
-    return cached
+    result = amend_with_minor(cached, req.added_minor)
+    return result
 
 
 @app.post("/api/pilot-register")
-def pilot_register():
+async def pilot_register(background_tasks: BackgroundTasks):
     session_id = str(uuid.uuid4())
-    SESSIONS[session_id] = {"status": "running", "queue": asyncio.Queue()}
-    asyncio.create_task(_run_pilot_task(session_id))
+    queue: asyncio.Queue = asyncio.Queue()
+    SESSIONS[session_id] = {"status": "running", "queue": queue}
+    background_tasks.add_task(_run_pilot_task, session_id, queue)
     return {"session_id": session_id}
 
 
-async def _run_pilot_task(session_id: str):
-    queue = SESSIONS[session_id]["queue"]
+async def _run_pilot_task(session_id: str, queue: asyncio.Queue):
     try:
         await run_pilot(session_id, queue)
     except Exception as e:
