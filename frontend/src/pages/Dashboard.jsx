@@ -4,7 +4,6 @@ import MapView from '../components/MapView'
 import CourseDrawer from '../components/CourseDrawer'
 import PilotBar from '../components/PilotBar'
 import PilotPanel from '../components/PilotPanel'
-import CountdownBanner from '../components/CountdownBanner'
 import { parseAudit, parseCached, fetchCourseMetadata, startPilot, confirmPilot } from '../lib/api'
 
 export default function Dashboard() {
@@ -104,7 +103,6 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col h-screen bg-[#f7f6f1] text-[#111111] overflow-hidden">
       <TopBar onUpload={handleAuditUpload} loading={loading} mapData={mapData} />
-      <CountdownBanner />
 
       {parseError && (
         <div className="mx-5 mt-3 px-4 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
@@ -118,6 +116,7 @@ export default function Dashboard() {
           loading={loading}
           onCourseSelect={setSelectedCourse}
           selectedId={selectedCourse?.id}
+          onUpload={handleAuditUpload}
         />
         {selectedCourse && (
           <CourseDrawer

@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { ReactFlow, Background, Controls, Handle, Position, MarkerType, BackgroundVariant } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Upload, FileText } from 'lucide-react'
 
 const COL_W = 195
 const ROW_H = 82
@@ -126,8 +126,61 @@ function buildFlowData(mapData) {
   return { nodes, edges }
 }
 
+/* ── Empty / upload state ── */
+function UploadZone({ onUpload }) {
+  const ref = useRef()
+  const [dragging, setDragging] = useState(false)
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setDragging(false)
+    const files = Array.from(e.dataTransfer.files)
+    const audit = files.find(f => f.name.toLowerCase().includes('audit')) ?? files[0]
+    const transcript = files.find(f => f.name.toLowerCase().includes('transcript'))
+    if (audit) onUpload(audit, transcript ?? null)
+  }
+
+  return (
+    <div className="flex-1 flex items-center justify-center bg-[#f7f6f1]">
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={handleDrop}
+        onClick={() => ref.current.click()}
+        className={`flex flex-col items-center gap-5 px-16 py-14 rounded-2xl border-2 border-dashed cursor-pointer transition-all select-none ${
+          dragging
+            ? 'border-[#FFC300] bg-[#FFC300]/8 scale-[1.01]'
+            : 'border-[#dedad4] hover:border-[#FFC300]/60 hover:bg-[#FFC300]/4'
+        }`}
+      >
+        <input
+          ref={ref}
+          type="file"
+          accept=".pdf"
+          className="hidden"
+          onChange={(e) => { if (e.target.files[0]) onUpload(e.target.files[0], null) }}
+        />
+        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${
+          dragging ? 'bg-[#FFC300]/20' : 'bg-[#f0efe9]'
+        }`}>
+          <FileText size={28} className={dragging ? 'text-[#FFC300]' : 'text-[#bbb]'} />
+        </div>
+        <div className="text-center">
+          <p className="text-[15px] font-semibold text-[#222]">Upload your degree audit PDF</p>
+          <p className="text-sm text-[#999] mt-1">Drag & drop here, or click to browse</p>
+        </div>
+        <div className="flex items-center gap-2 px-5 py-2.5 bg-[#FFC300] hover:bg-[#FFD84D] rounded-xl transition-colors">
+          <Upload size={14} className="text-black" />
+          <span className="text-sm font-bold text-black">Choose PDF</span>
+        </div>
+        <p className="text-[11px] text-[#ccc]">UMBC degree audit · CS · IS · CE + Finance / Entrepreneurship minors</p>
+      </div>
+    </div>
+  )
+}
+
 /* ── Component ── */
-export default function MapView({ mapData, loading, onCourseSelect, selectedId }) {
+export default function MapView({ mapData, loading, onCourseSelect, selectedId, onUpload }) {
   const { nodes: rawNodes, edges } = useMemo(() => buildFlowData(mapData), [mapData])
 
   const nodes = useMemo(
@@ -145,15 +198,7 @@ export default function MapView({ mapData, loading, onCourseSelect, selectedId }
   }
 
   if (!mapData) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 bg-[#f7f6f1] select-none">
-        <div className="w-16 h-16 rounded-full bg-[#FFC300]/15 flex items-center justify-center text-3xl">🗺</div>
-        <div className="text-center">
-          <p className="text-sm font-semibold text-[#222]">Drop your degree audit PDF to begin</p>
-          <p className="text-xs text-[#999] mt-1">Supports CS · IS · CE &nbsp;+&nbsp; Finance / Entrepreneurship minors</p>
-        </div>
-      </div>
-    )
+    return <UploadZone onUpload={onUpload} />
   }
 
   return (

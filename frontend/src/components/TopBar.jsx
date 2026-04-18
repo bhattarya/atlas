@@ -1,7 +1,7 @@
 import { useRef } from 'react'
-import { Upload, Loader2, ChevronLeft } from 'lucide-react'
+import { Upload, Loader2 } from 'lucide-react'
 
-export default function TopBar({ onUpload, loading, mapData, onBack }) {
+export default function TopBar({ onUpload, loading, mapData }) {
   const auditRef = useRef()
   const transcriptRef = useRef()
 
@@ -32,7 +32,12 @@ export default function TopBar({ onUpload, loading, mapData, onBack }) {
             <span className="text-white font-medium">{mapData.student_name}</span>
             <span className="text-[#444]">·</span>
             <span className="text-[#FFC300]">{mapData.major}</span>
-            {mapData.minor && <><span className="text-[#444]">›</span><span className="text-[#aaa]">{mapData.minor}</span></>}
+            {mapData.minor && (
+              <>
+                <span className="text-[#444]">›</span>
+                <span className="text-[#aaa]">{mapData.minor}</span>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -40,16 +45,18 @@ export default function TopBar({ onUpload, loading, mapData, onBack }) {
       <div className="flex items-center gap-2">
         <input ref={auditRef} type="file" accept=".pdf" className="hidden" onChange={handleFileSelect} />
         <input ref={transcriptRef} type="file" accept=".pdf" className="hidden" />
-        {mapData && (
-          <button
-            onClick={() => auditRef.current.click()}
-            disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium text-[#888] hover:text-white transition-colors disabled:opacity-40"
-          >
-            {loading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
-            {loading ? 'Parsing…' : 'New Audit'}
-          </button>
-        )}
+        <button
+          onClick={() => auditRef.current.click()}
+          disabled={loading}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-all disabled:opacity-40 ${
+            mapData
+              ? 'text-[#888] hover:text-white'
+              : 'bg-[#FFC300] hover:bg-[#FFD84D] text-black'
+          }`}
+        >
+          {loading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+          {loading ? 'Parsing…' : mapData ? 'New Audit' : 'Upload Audit'}
+        </button>
       </div>
     </div>
   )
