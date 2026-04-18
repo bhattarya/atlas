@@ -1,4 +1,4 @@
-# ATLAS — AI Registration Co-Pilot for UMBC COEIT
+# ATLAS — Autopolit for UMBC COEIT
 
 ATLAS is a real-time AI registration assistant that helps UMBC Computer Science and Information Systems students secure high-demand courses before they fill up. It combines two agents:
 
