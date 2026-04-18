@@ -65,6 +65,9 @@ export default function DragPlanner({ plannerState, onDrop }) {
     if (source === target) return
     const course = findCourse(plannerState, courseId)
 
+    // Always place the course — validator only surfaces advisories, never blocks
+    onDrop(courseId, source, target, course)
+
     if (target !== 'bank') {
       try {
         const currentPlan = {}
@@ -72,17 +75,15 @@ export default function DragPlanner({ plannerState, onDrop }) {
           currentPlan[sem] = courses.map(c => c.id)
         }
         const result = await validatePlacement(courseId, target, currentPlan)
-        if (!result.valid) {
-          showToast(result.errors[0] || 'Invalid placement')
-          return
+        // Surface the most important advisory (errors first, then warnings) as a soft side message
+        const advisory = result.errors?.[0] || result.warnings?.[0]
+        if (advisory) {
+          showToast(advisory, result.errors?.length ? 'warning' : 'info')
         }
-        if (result.warnings.length > 0) showToast(result.warnings[0], 'warning')
       } catch {
-        showToast('Validation unavailable — placing anyway', 'warning')
+        // Validator down — placement still succeeded, no need to nag
       }
     }
-
-    onDrop(courseId, source, target, course)
   }
 
   return (
@@ -98,19 +99,25 @@ export default function DragPlanner({ plannerState, onDrop }) {
         {/* Header */}
         <div className="flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#FFC300]/15 text-[#a87a00]">
-              <GraduationCap size={15} strokeWidth={2.2} />
+            <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-[#FFC300]/25 to-[#FFC300]/10 text-[#a87a00] shadow-[0_2px_6px_rgba(255,195,0,0.12)]">
+              <GraduationCap size={16} strokeWidth={2.2} />
             </div>
             <div className="leading-tight">
-              <p className="text-[12px] font-bold text-[#1a1a1a]">Graduation Roadmap</p>
-              <p className="text-[10px] text-[#999]">
-                {plannerState.bank.length} unplaced · {totalPlanned} scheduled · prereqs validated on drop
+              <p className="text-[12.5px] font-bold text-[#1a1a1a] tracking-tight">Graduation Roadmap</p>
+              <p className="text-[10px] text-[#999] flex items-center gap-1.5 mt-0.5">
+                <span className="tabular-nums font-semibold text-[#a87a00]">{plannerState.bank.length}</span>
+                <span>unplaced</span>
+                <span className="text-[#d4d2c7]">·</span>
+                <span className="tabular-nums font-semibold text-[#5a6f3f]">{totalPlanned}</span>
+                <span>scheduled</span>
+                <span className="text-[#d4d2c7]">·</span>
+                <span className="italic">prereqs validated on drop</span>
               </p>
             </div>
           </div>
           <button
             onClick={() => setCollapsed(c => !c)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-white/70 text-[10px] font-semibold text-[#777] transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-white/80 text-[10px] font-semibold text-[#777] hover:text-[#111] transition-colors border border-transparent hover:border-[#e8e7e0]"
           >
             {collapsed ? 'Expand' : 'Hide'}
             <ChevronDown
@@ -143,12 +150,20 @@ export default function DragPlanner({ plannerState, onDrop }) {
       </DragOverlay>
 
       {toast && (
-        <div className={`fixed bottom-24 right-5 z-[60] px-4 py-2.5 rounded-xl text-sm font-medium shadow-2xl pointer-events-none border ${
+        <div className={`fixed bottom-24 right-5 z-[60] px-4 py-2.5 rounded-xl text-[13px] font-medium shadow-2xl pointer-events-none border max-w-sm flex items-start gap-2 ${
           toast.type === 'warning'
             ? 'bg-[#fffbe6] text-[#7a5a00] border-[#FFC300]'
-            : 'bg-[#fef2f2] text-[#9a1f1f] border-[#fecaca]'
+            : 'bg-[#eff6ff] text-[#1e40af] border-[#bfdbfe]'
         }`}>
-          {toast.message}
+          <span className="text-[14px] leading-none mt-0.5">
+            {toast.type === 'warning' ? '⚠' : 'ℹ'}
+          </span>
+          <span>
+            <span className="font-bold uppercase tracking-wider text-[10px] block mb-0.5 opacity-80">
+              {toast.type === 'warning' ? 'Heads up' : 'Note'}
+            </span>
+            {toast.message}
+          </span>
         </div>
       )}
     </DndContext>
@@ -161,17 +176,27 @@ function BankZone({ courses }) {
   return (
     <div
       ref={setNodeRef}
-      className={`flex items-center gap-1.5 overflow-x-auto px-2.5 py-1.5 rounded-xl min-h-[34px] shrink-0 transition-all border ${
+      className={`flex items-center gap-2 overflow-x-auto px-3 py-2 rounded-xl min-h-[40px] shrink-0 transition-all border ${
         isOver
           ? 'bg-white border-[#FFC300] shadow-[0_0_0_3px_rgba(255,195,0,0.15)]'
-          : 'bg-white/60 border-[#e8e7e0]'
+          : 'bg-white/70 border-[#e8e7e0] hover:bg-white'
       }`}
     >
-      <span className="text-[9px] font-bold uppercase tracking-wider text-[#aaa] shrink-0 pl-1 pr-2 border-r border-[#e8e7e0]">
-        Unplaced
-      </span>
+      <div className="flex items-center gap-1.5 shrink-0 pr-2 border-r border-[#e8e7e0]">
+        <span className="text-[9px] font-bold uppercase tracking-wider text-[#888]">Unplaced</span>
+        {courses.length > 0 && (
+          <span className="text-[9px] font-bold tabular-nums px-1.5 py-0.5 rounded-full bg-[#fffbe6] text-[#a87a00] border border-[#FFD84D]/60">
+            {courses.length}
+          </span>
+        )}
+      </div>
       {courses.length === 0 ? (
-        <span className="text-[10px] text-[#bbb] italic px-1">all courses placed in semesters</span>
+        <div className="flex items-center gap-1.5 text-[10px] text-[#9d9a8e] italic px-1">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <path d="M2 6l3 3 5-7" stroke="#5fa86b" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          every course placed — your plan is complete
+        </div>
       ) : (
         courses.map(c => <CourseChip key={c.id} course={c} />)
       )}
@@ -184,8 +209,8 @@ function YearGroup({ year, semesters }) {
   return (
     <div className="flex-1 flex flex-col min-w-0">
       <div className="flex items-baseline justify-between px-1 mb-1.5 shrink-0">
-        <span className="text-[10px] font-bold text-[#1a1a1a] tracking-wide">{year.label}</span>
-        <span className="text-[9px] text-[#aaa] font-medium">{year.sublabel}</span>
+        <span className="text-[10.5px] font-bold text-[#1a1a1a] tracking-tight">{year.label}</span>
+        <span className="text-[9px] text-[#aaa] font-semibold tabular-nums tracking-wider">{year.sublabel}</span>
       </div>
       <div className="flex gap-2 flex-1 min-h-0">
         {year.semesters.map(sem => (
@@ -203,43 +228,69 @@ function SemesterColumn({ semester, courses }) {
   const isHeavy = totalCredits > 18
   const isLight = totalCredits > 0 && totalCredits < 12
   const [season, year] = semester.split(' ')
-  const seasonGlyph = season === 'Fall' ? '◐' : '◑'
+  const isFall = season === 'Fall'
 
   return (
     <div
       ref={setNodeRef}
       className={`flex-1 flex flex-col rounded-xl border transition-all duration-150 min-w-0 ${
         isOver
-          ? 'border-[#FFC300] bg-white shadow-[0_0_0_3px_rgba(255,195,0,0.18)]'
-          : 'border-[#e6e4dc] bg-white/80 hover:bg-white'
+          ? 'border-[#FFC300] bg-white shadow-[0_0_0_3px_rgba(255,195,0,0.18)] scale-[1.005]'
+          : courses.length === 0
+          ? 'border-dashed border-[#dfddd2] bg-white/40 hover:bg-white/70 hover:border-[#cfccc1]'
+          : 'border-[#e6e4dc] bg-white hover:shadow-sm'
       }`}
     >
       <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-[#f0efe9] shrink-0">
         <div className="flex items-center gap-1.5">
-          <span className={`text-[10px] ${season === 'Fall' ? 'text-[#c97a3f]' : 'text-[#5fa86b]'}`}>{seasonGlyph}</span>
-          <span className="text-[10px] font-semibold text-[#444]">{season}</span>
-          <span className="text-[9px] text-[#aaa]">{year}</span>
+          <span
+            className="inline-block w-2 h-2 rounded-full shadow-sm"
+            style={{
+              background: isFall ? '#c97a3f' : '#5fa86b',
+              boxShadow: `0 0 0 2px ${isFall ? '#c97a3f20' : '#5fa86b20'}`,
+            }}
+          />
+          <span className="text-[10.5px] font-bold text-[#1a1a1a] tracking-tight">{season}</span>
+          <span className="text-[9.5px] text-[#999] tabular-nums">{year}</span>
         </div>
-        {totalCredits > 0 && (
+        {totalCredits > 0 ? (
           <span className={`text-[9px] font-bold tabular-nums px-1.5 py-0.5 rounded ${
             isHeavy
-              ? 'text-[#9a1f1f] bg-[#fef2f2]'
+              ? 'text-[#9a1f1f] bg-[#fef2f2] ring-1 ring-[#fecaca]'
               : isLight
-              ? 'text-[#7a5a00] bg-[#fffbe6]'
-              : 'text-[#5a6f3f] bg-[#f0f6e8]'
+              ? 'text-[#7a5a00] bg-[#fffbe6] ring-1 ring-[#FFD84D]/50'
+              : 'text-[#5a6f3f] bg-[#f0f6e8] ring-1 ring-[#cfe0b4]/50'
           }`}>
             {totalCredits} cr
           </span>
+        ) : (
+          <span className="text-[8.5px] text-[#cfccc1] font-bold tracking-[0.12em]">EMPTY</span>
         )}
       </div>
       <div className="flex-1 overflow-y-auto px-1.5 py-1.5 flex flex-col gap-1 min-h-0">
-        {courses.length === 0 && (
-          <div className="flex-1 flex items-center justify-center">
-            <p className="text-[9px] text-[#cfcdc4] italic">drop courses here</p>
-          </div>
+        {courses.length === 0 ? (
+          <EmptyDropHint isOver={isOver} />
+        ) : (
+          courses.map(c => <CourseChip key={c.id} course={c} compact />)
         )}
-        {courses.map(c => <CourseChip key={c.id} course={c} compact />)}
       </div>
+    </div>
+  )
+}
+
+function EmptyDropHint({ isOver }) {
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center gap-1 select-none">
+      <div className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${
+        isOver ? 'bg-[#FFC300]/30 text-[#a87a00]' : 'bg-[#f0efe9] text-[#cfccc1]'
+      }`}>
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+          <path d="M6 2v8M2 6h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </div>
+      <p className={`text-[9px] transition-colors ${isOver ? 'text-[#a87a00] font-semibold' : 'text-[#bfbcb1]'}`}>
+        {isOver ? 'release to add' : 'drop a course'}
+      </p>
     </div>
   )
 }

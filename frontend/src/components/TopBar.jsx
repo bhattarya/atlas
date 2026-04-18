@@ -26,7 +26,19 @@ export default function TopBar({ onUpload, loading, mapData }) {
       onDrop={handleDrop}
     >
       <div className="flex items-center gap-3">
-        <span className="text-[#FFC300] font-bold text-lg tracking-tight select-none">Atlas</span>
+        <div className="flex items-center gap-2 select-none">
+          <img
+            src="/atlas-logo.svg"
+            alt="Atlas"
+            className="w-7 h-7 drop-shadow-[0_2px_6px_rgba(255,195,0,0.45)]"
+          />
+          <span className="font-display font-black text-[#FFC300] text-[20px] tracking-[-0.02em] leading-none">
+            Atlas
+          </span>
+        </div>
+        {mapData && (
+          <span className="h-5 w-px bg-[#333]" aria-hidden="true" />
+        )}
         {mapData && (
           <div className="flex items-center gap-1.5 text-xs">
             <span className="text-white font-medium">{mapData.student_name}</span>

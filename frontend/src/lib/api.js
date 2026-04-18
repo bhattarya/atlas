@@ -29,8 +29,12 @@ export async function fetchCourseMetadata() {
   return res.json()
 }
 
-export async function startPilot() {
-  const res = await fetch(`${BASE}/api/pilot-register`, { method: 'POST' })
+export async function startPilot(plan = null) {
+  const res = await fetch(`${BASE}/api/pilot-register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ plan }),
+  })
   if (!res.ok) throw new Error(`Pilot start failed: ${res.status}`)
   return res.json()  // { session_id }
 }
@@ -39,6 +43,49 @@ export async function confirmPilot(sessionId) {
   const res = await fetch(`${BASE}/api/pilot-confirm/${sessionId}`, { method: 'POST' })
   if (!res.ok) throw new Error(`Pilot confirm failed: ${res.status}`)
   return res.json()
+}
+
+export async function getAdvisorInsights(plan) {
+  const res = await fetch(`${BASE}/api/advisor`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ plan }),
+  })
+  if (!res.ok) throw new Error(`Advisor failed: ${res.status}`)
+  return res.json()
+}
+
+export async function askAdvisor(question, plan = null) {
+  const res = await fetch(`${BASE}/api/advisor/ask`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question, plan }),
+  })
+  if (!res.ok) throw new Error(`Advisor ask failed: ${res.status}`)
+  return res.json()  // { answer }
+}
+
+export async function chatAdvisor(messages, plan = null) {
+  const res = await fetch(`${BASE}/api/advisor/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, plan }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(`${res.status}: ${body.detail ?? 'Chat failed'}`)
+  }
+  return res.json()  // { type: "text"|"tool_use", ... }
+}
+
+export async function exportPlanPdf({ registered, student_name, major, term }) {
+  const res = await fetch(`${BASE}/api/export-plan`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ registered, student_name, major, term }),
+  })
+  if (!res.ok) throw new Error(`PDF export failed: ${res.status}`)
+  return res.blob()
 }
 
 export async function validatePlacement(courseCode, semester, currentPlan) {

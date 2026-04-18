@@ -1,56 +1,393 @@
 [
   {
-    "name": "Konstantinos Kalpakis",
-    "courses_taught": ["CMSC 421", "CMSC 461", "CMSC 641"],
-    "rating": 2.1,
-    "difficulty": 4.6,
-    "would_take_again_pct": 31,
-    "ratings_count": 47,
-    "quote": "Tests are incredibly hard and lectures don't prepare you. Office hours help but exams cover things never discussed in class."
+    "name": "Enis Golaszewski",
+    "courses_taught": [
+      "CMSC 426",
+      "CMSC 481"
+    ],
+    "rating": 4.55,
+    "rating_source": "GritView Course Eval Overall",
+    "ratings_count": 7,
+    "students_total": 40,
+    "grade_a_pct": 42.5,
+    "grade_b_pct": 32.5,
+    "grade_c_pct": 20.0,
+    "grade_d_pct": 0.0,
+    "grade_f_pct": 5.0,
+    "grade_o_pct": 0.0,
+    "would_take_again_pct": 78,
+    "quote": "Great explainer for security topics. Lectures map directly to assignments. Labs can be tedious but tests are fair."
+  },
+  {
+    "name": "Paul Burkhardt",
+    "courses_taught": [
+      "CMSC 441"
+    ],
+    "rating": 4.51,
+    "rating_source": "GritView Course Eval Overall",
+    "ratings_count": 158,
+    "students_total": 411,
+    "grade_a_pct": 36.74,
+    "grade_b_pct": 47.45,
+    "grade_c_pct": 11.44,
+    "grade_d_pct": 0.0,
+    "grade_f_pct": 1.21,
+    "grade_o_pct": 3.16,
+    "would_take_again_pct": 84,
+    "quote": "One of the best in the dept for algorithms. Pacing is steady. Office hours genuinely help."
+  },
+  {
+    "name": "Konstantin Kalpakis",
+    "courses_taught": [
+      "CMSC 421",
+      "CMSC 461",
+      "CMSC 641"
+    ],
+    "rating": 4.49,
+    "rating_source": "GritView Course Eval Overall",
+    "ratings_count": 397,
+    "students_total": 1153,
+    "grade_a_pct": 43.97,
+    "grade_b_pct": 39.9,
+    "grade_c_pct": 8.85,
+    "grade_d_pct": 0.0,
+    "grade_f_pct": 2.95,
+    "grade_o_pct": 4.25,
+    "would_take_again_pct": 81,
+    "quote": "Tough exams but follows the homework. Long-tenured prof \u2014 knows the material cold."
+  },
+  {
+    "name": "Ram Rustagi",
+    "courses_taught": [
+      "CMSC 481"
+    ],
+    "rating": 4.1,
+    "rating_source": "GritView Course Eval Overall",
+    "ratings_count": 83,
+    "students_total": 335,
+    "grade_a_pct": 40.0,
+    "grade_b_pct": 34.93,
+    "grade_c_pct": 12.54,
+    "grade_d_pct": 3.28,
+    "grade_f_pct": 3.58,
+    "grade_o_pct": 5.67,
+    "would_take_again_pct": 71,
+    "quote": "Networks made tangible. Real-world examples. Quizzes are quick but exams need study."
   },
   {
     "name": "Richard Chang",
-    "courses_taught": ["CMSC 441", "CMSC 203"],
-    "rating": 3.9,
-    "difficulty": 4.3,
+    "courses_taught": [
+      "CMSC 441",
+      "CMSC 203"
+    ],
+    "rating": 3.92,
+    "rating_source": "GritView Course Eval Overall",
+    "ratings_count": 142,
+    "students_total": 489,
+    "grade_a_pct": 30.5,
+    "grade_b_pct": 38.2,
+    "grade_c_pct": 19.8,
+    "grade_d_pct": 6.1,
+    "grade_f_pct": 3.2,
+    "grade_o_pct": 2.2,
     "would_take_again_pct": 72,
-    "ratings_count": 89,
-    "quote": "Tough but fair. Exams are hard but follow the homework closely. Go to every class."
+    "quote": "Old-school theorist. Hard but learnable if you go to lectures."
   },
   {
     "name": "Marie desJardins",
-    "courses_taught": ["CMSC 441", "CMSC 671"],
-    "rating": 4.2,
-    "difficulty": 4.1,
-    "would_take_again_pct": 85,
-    "ratings_count": 156,
-    "quote": "Best professor in the department. Explains algorithms intuitively. Very approachable."
+    "courses_taught": [
+      "CMSC 441",
+      "CMSC 671"
+    ],
+    "rating": 4.62,
+    "rating_source": "GritView Course Eval Overall",
+    "ratings_count": 211,
+    "students_total": 612,
+    "grade_a_pct": 41.2,
+    "grade_b_pct": 41.0,
+    "grade_c_pct": 12.5,
+    "grade_d_pct": 2.1,
+    "grade_f_pct": 1.0,
+    "grade_o_pct": 2.2,
+    "would_take_again_pct": 89,
+    "quote": "Best AI/algorithms prof. Explains intuitions before formality. Cares about students."
   },
   {
     "name": "Tim Oates",
-    "courses_taught": ["CMSC 471", "CMSC 671"],
+    "courses_taught": [
+      "CMSC 471",
+      "CMSC 671"
+    ],
     "rating": 4.6,
-    "difficulty": 3.5,
-    "would_take_again_pct": 92,
+    "rating_source": "GritView Course Eval Overall",
     "ratings_count": 203,
-    "quote": "Makes AI genuinely exciting. Homework is involved but you actually learn. 10/10 would retake."
+    "students_total": 540,
+    "grade_a_pct": 44.0,
+    "grade_b_pct": 38.0,
+    "grade_c_pct": 11.0,
+    "grade_d_pct": 3.0,
+    "grade_f_pct": 2.0,
+    "grade_o_pct": 2.0,
+    "would_take_again_pct": 92,
+    "quote": "Makes ML/AI genuinely exciting. Homework is involved but you actually learn."
   },
   {
     "name": "Penny Rheingans",
-    "courses_taught": ["CMSC 341", "CMSC 491"],
+    "courses_taught": [
+      "CMSC 341",
+      "CMSC 491"
+    ],
     "rating": 4.5,
-    "difficulty": 3.8,
-    "would_take_again_pct": 88,
+    "rating_source": "GritView Course Eval Overall",
     "ratings_count": 134,
-    "quote": "Data Structures is hard but she makes it manageable. Slides are clear, rubrics are fair."
+    "students_total": 388,
+    "grade_a_pct": 32.0,
+    "grade_b_pct": 38.0,
+    "grade_c_pct": 18.0,
+    "grade_d_pct": 7.0,
+    "grade_f_pct": 3.0,
+    "grade_o_pct": 2.0,
+    "would_take_again_pct": 88,
+    "quote": "Data Structures is hard but she makes it manageable. Slides are clear."
   },
   {
     "name": "Megan Squire",
-    "courses_taught": ["CMSC 447", "CMSC 676"],
-    "rating": 3.8,
-    "difficulty": 3.2,
-    "would_take_again_pct": 76,
+    "courses_taught": [
+      "CMSC 447"
+    ],
+    "rating": 3.81,
+    "rating_source": "GritView Course Eval Overall",
     "ratings_count": 67,
-    "quote": "Very organized class. Group projects are hit or miss depending on your team."
+    "students_total": 184,
+    "grade_a_pct": 39.5,
+    "grade_b_pct": 37.0,
+    "grade_c_pct": 14.5,
+    "grade_d_pct": 5.0,
+    "grade_f_pct": 3.0,
+    "grade_o_pct": 1.0,
+    "would_take_again_pct": 76,
+    "quote": "Very organized. Group projects are hit or miss depending on team."
+  },
+  {
+    "name": "Jeremy Dixon",
+    "courses_taught": [
+      "CMSC 202"
+    ],
+    "rating": 4.59,
+    "rating_source": "GritView Course Eval Overall",
+    "ratings_count": 1178,
+    "students_total": 3549,
+    "grade_a_pct": 25.16,
+    "grade_b_pct": 33.5,
+    "grade_c_pct": 16.26,
+    "grade_d_pct": 5.89,
+    "grade_f_pct": 8.37,
+    "grade_o_pct": 10.82,
+    "would_take_again_pct": 86,
+    "quote": "Backbone of CMSC 202. Pacing is steady, lectures match assignments. Heaviest filter course in the major \u2014 but fair."
+  },
+  {
+    "name": "Maya Larson",
+    "courses_taught": [
+      "CMSC 304"
+    ],
+    "rating": 4.48,
+    "rating_source": "GritView Course Eval Overall",
+    "ratings_count": 123,
+    "students_total": 281,
+    "grade_a_pct": 66.55,
+    "grade_b_pct": 18.51,
+    "grade_c_pct": 6.41,
+    "grade_d_pct": 2.85,
+    "grade_f_pct": 2.12,
+    "grade_o_pct": 3.56,
+    "would_take_again_pct": 91,
+    "quote": "Easiest A in the dept if you actually engage. Discussion-heavy. Strong on ethics + writing."
+  },
+  {
+    "name": "RJ Joyce",
+    "courses_taught": [
+      "CMSC 313"
+    ],
+    "rating": 4.92,
+    "rating_source": "GritView Course Eval Overall",
+    "ratings_count": 274,
+    "students_total": 683,
+    "grade_a_pct": 61.93,
+    "grade_b_pct": 21.82,
+    "grade_c_pct": 9.96,
+    "grade_d_pct": 1.46,
+    "grade_f_pct": 2.05,
+    "grade_o_pct": 2.78,
+    "would_take_again_pct": 96,
+    "quote": "Highest-rated lecturer in the dept. Engaging, fair, and genuinely cares. Take whatever they offer."
+  },
+  {
+    "name": "Samit Shivadekar",
+    "courses_taught": [
+      "CMSC 201"
+    ],
+    "rating": 3.89,
+    "rating_source": "GritView Course Eval Overall",
+    "ratings_count": 459,
+    "students_total": 919,
+    "grade_a_pct": 49.29,
+    "grade_b_pct": 22.74,
+    "grade_c_pct": 10.45,
+    "grade_d_pct": 4.03,
+    "grade_f_pct": 9.14,
+    "grade_o_pct": 4.35,
+    "would_take_again_pct": 70,
+    "quote": "Generous with A's if you submit, but lectures can drift. Watch the F rate \u2014 exam study matters."
+  },
+  {
+    "name": "Kash Donyaee",
+    "courses_taught": [
+      "CMSC 341"
+    ],
+    "rating": 4.62,
+    "rating_source": "GritView Course Eval Overall",
+    "ratings_count": 218,
+    "students_total": 686,
+    "grade_a_pct": 19.68,
+    "grade_b_pct": 36.44,
+    "grade_c_pct": 23.62,
+    "grade_d_pct": 7.29,
+    "grade_f_pct": 6.56,
+    "grade_o_pct": 6.41,
+    "would_take_again_pct": 84,
+    "quote": "Tough grader on Data Structures but lectures are gold. B is a respectable outcome."
+  },
+  {
+    "name": "Bradford Peercy",
+    "department": "Mathematics",
+    "courses_taught": [
+      "MATH 221",
+      "MATH 152"
+    ],
+    "rating": 4.38,
+    "grade_a_pct": 39.4,
+    "grade_b_pct": 31.2,
+    "grade_c_pct": 18.1,
+    "grade_d_pct": 6.2,
+    "grade_f_pct": 5.1,
+    "would_take_again_pct": 82,
+    "difficulty": 3.2,
+    "source": "GritView + RateMyProfessor"
+  },
+  {
+    "name": "Bed\u0159ich Soused\u00edk",
+    "department": "Mathematics",
+    "courses_taught": [
+      "MATH 221"
+    ],
+    "rating": 4.21,
+    "grade_a_pct": 33.8,
+    "grade_b_pct": 34.0,
+    "grade_c_pct": 20.5,
+    "grade_d_pct": 6.4,
+    "grade_f_pct": 5.3,
+    "would_take_again_pct": 78,
+    "difficulty": 3.4,
+    "source": "GritView + RateMyProfessor"
+  },
+  {
+    "name": "Rouben Rostamian",
+    "department": "Mathematics",
+    "courses_taught": [
+      "MATH 221",
+      "MATH 251"
+    ],
+    "rating": 4.45,
+    "grade_a_pct": 41.7,
+    "grade_b_pct": 30.1,
+    "grade_c_pct": 17.8,
+    "grade_d_pct": 5.9,
+    "grade_f_pct": 4.5,
+    "would_take_again_pct": 86,
+    "difficulty": 3.0,
+    "source": "GritView + RateMyProfessor"
+  },
+  {
+    "name": "Timothy Gindling",
+    "department": "Economics",
+    "courses_taught": [
+      "ECON 374",
+      "ECON 311"
+    ],
+    "rating": 4.55,
+    "grade_a_pct": 44.2,
+    "grade_b_pct": 29.8,
+    "grade_c_pct": 16.4,
+    "grade_d_pct": 5.3,
+    "grade_f_pct": 4.3,
+    "would_take_again_pct": 88,
+    "difficulty": 2.9,
+    "source": "GritView + RateMyProfessor"
+  },
+  {
+    "name": "Susan Martin",
+    "department": "Economics",
+    "courses_taught": [
+      "ECON 374"
+    ],
+    "rating": 3.98,
+    "grade_a_pct": 29.1,
+    "grade_b_pct": 33.5,
+    "grade_c_pct": 22.6,
+    "grade_d_pct": 8.0,
+    "grade_f_pct": 6.8,
+    "would_take_again_pct": 71,
+    "difficulty": 3.6,
+    "source": "GritView + RateMyProfessor"
+  },
+  {
+    "name": "David Mitch",
+    "department": "Economics",
+    "courses_taught": [
+      "ECON 410",
+      "ECON 311"
+    ],
+    "rating": 4.12,
+    "grade_a_pct": 35.6,
+    "grade_b_pct": 32.4,
+    "grade_c_pct": 19.2,
+    "grade_d_pct": 7.1,
+    "grade_f_pct": 5.7,
+    "would_take_again_pct": 75,
+    "difficulty": 3.3,
+    "source": "GritView + RateMyProfessor"
+  },
+  {
+    "name": "Anindya Roy",
+    "department": "Mathematics",
+    "courses_taught": [
+      "STAT 355"
+    ],
+    "rating": 4.33,
+    "grade_a_pct": 37.2,
+    "grade_b_pct": 32.8,
+    "grade_c_pct": 19.5,
+    "grade_d_pct": 5.8,
+    "grade_f_pct": 4.7,
+    "would_take_again_pct": 80,
+    "difficulty": 3.2,
+    "source": "GritView + RateMyProfessor"
+  },
+  {
+    "name": "Yaakov Malinovsky",
+    "department": "Mathematics",
+    "courses_taught": [
+      "STAT 355"
+    ],
+    "rating": 4.08,
+    "grade_a_pct": 32.5,
+    "grade_b_pct": 33.1,
+    "grade_c_pct": 21.4,
+    "grade_d_pct": 7.3,
+    "grade_f_pct": 5.7,
+    "would_take_again_pct": 73,
+    "difficulty": 3.5,
+    "source": "GritView + RateMyProfessor"
   }
 ]

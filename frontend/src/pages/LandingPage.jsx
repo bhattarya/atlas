@@ -1,26 +1,83 @@
 import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+
+const MAP_CACHE_KEY = 'atlas.mapData.v2'
+
+// Wipe any lingering audit cache — both the current key AND any older-version
+// keys a returning user might still have in their session from a previous
+// build. Landing = always fresh.
+function clearAuditCache() {
+  try {
+    sessionStorage.removeItem(MAP_CACHE_KEY)
+    sessionStorage.removeItem('atlas.mapData.v1')
+  } catch {}
+}
 
 export default function LandingPage() {
   const navigate = useNavigate()
+
+  // Hitting the landing page at all — whether via click, back button, or
+  // typing the URL — resets the session so the next /dashboard visit shows
+  // the upload screen. (Firebase auth would do this automatically per user,
+  // but we don't need that yet.)
+  useEffect(() => {
+    clearAuditCache()
+  }, [])
+
+  const handleGetStarted = () => {
+    clearAuditCache()
+    navigate('/dashboard')
+  }
 
   return (
     <div className="relative h-screen w-full overflow-hidden flex flex-col items-center justify-center bg-[#f7f6f1]">
       <Blobs />
 
-      <div className="relative z-10 flex flex-col items-center text-center gap-5 px-6 max-w-xl">
-        <h1 className="text-6xl font-bold tracking-tight text-black select-none">Atlas</h1>
+      {/* Giant watermark logo behind the title — ties brand mark to wordmark */}
+      <img
+        src="/atlas-logo.svg"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[58%] w-[560px] opacity-[0.06] z-0"
+      />
 
-        <p className="text-[15px] text-[#666] leading-relaxed max-w-sm">
+      <div className="relative z-10 flex flex-col items-center text-center gap-5 px-6 max-w-xl">
+        {/* Crisp foreground logo */}
+        <img
+          src="/atlas-logo.svg"
+          alt="Atlas"
+          className="w-24 h-24 drop-shadow-[0_8px_24px_rgba(255,195,0,0.35)] mb-1"
+        />
+
+        {/* Wordmark — serif display, tight tracking, subtle gold underscore */}
+        <div className="flex flex-col items-center gap-2">
+          <h1
+            className="font-display font-black text-[88px] leading-none tracking-[-0.04em] text-black select-none"
+            style={{ fontVariationSettings: '"opsz" 144' }}
+          >
+            Atlas
+          </h1>
+          <div className="flex items-center gap-2">
+            <span className="h-px w-6 bg-[#FFC300]" />
+            <span className="font-mascot text-[11px] tracking-[0.42em] text-[#8a7a3a]">
+              UMBC · COEIT · REGISTRATION CO-PILOT
+            </span>
+            <span className="h-px w-6 bg-[#FFC300]" />
+          </div>
+        </div>
+
+        <p className="text-[15px] text-[#666] leading-relaxed max-w-sm mt-1">
           Class standing decides who gets to plan.<br />
-          Atlas decides who gets to win.
+          <span className="text-black font-medium">Atlas decides who gets to win.</span>
         </p>
 
         <div className="mt-2">
           <button
-            onClick={() => navigate('/dashboard')}
-            className="px-8 py-2.5 rounded-full bg-black text-[#FFC300] text-sm font-semibold hover:bg-[#111] transition-colors shadow-sm"
+            onClick={handleGetStarted}
+            className="group px-8 py-2.5 rounded-full bg-black text-[#FFC300] text-sm font-semibold hover:bg-[#111] transition-all shadow-[0_6px_20px_rgba(0,0,0,0.18)] hover:shadow-[0_10px_28px_rgba(255,195,0,0.25)] hover:-translate-y-px"
           >
             Get Started
+            <span className="inline-block ml-1.5 transition-transform group-hover:translate-x-0.5">→</span>
           </button>
         </div>
 
@@ -34,7 +91,7 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <p className="absolute bottom-6 text-xs text-[#bbb] z-10 select-none">
+      <p className="absolute bottom-6 text-xs text-[#bbb] z-10 select-none italic">
         For every COEIT student who opens their window and finds the seat already gone.
       </p>
     </div>

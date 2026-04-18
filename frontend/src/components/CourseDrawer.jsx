@@ -5,6 +5,16 @@ export default function CourseDrawer({ course, metadata, onClose }) {
   const courseGrades = metadata?.grades?.filter(g => g.course_code === course.id) ?? []
   const latestGrade = courseGrades[0] ?? null
 
+  // Backend emits distribution_pct + semesters_aggregated. Normalize for the UI
+  // and compute the "C or below" / "other" rates on the fly (GritView doesn't
+  // publish them directly).
+  const distribution = latestGrade?.distribution_pct ?? null
+  const cOrBelowPct = distribution
+    ? Math.round(((distribution.C ?? 0) + (distribution.D ?? 0) + (distribution.F ?? 0)) * 10) / 10
+    : null
+  const otherPct = distribution ? Math.round((distribution.O ?? 0) * 10) / 10 : null
+  const gradeTerm = latestGrade?.semesters_aggregated ?? latestGrade?.semester ?? 'All Semesters'
+
   const statusLabel = { completed: 'Completed', in_progress: 'In Progress', needed: 'Needed' }[course.status] ?? course.status
   const statusColor = { completed: 'text-[#CC9C00]', in_progress: 'text-[#555]', needed: 'text-[#999]' }[course.status] ?? 'text-[#999]'
 
@@ -87,14 +97,14 @@ export default function CourseDrawer({ course, metadata, onClose }) {
         )}
 
         {/* Grade distribution */}
-        {latestGrade && (
-          <Section title={`Grades · ${latestGrade.instructor} (${latestGrade.semester})`}>
-            <GradeBar distribution={latestGrade.distribution} />
+        {latestGrade && distribution && (
+          <Section title={`Grades · ${latestGrade.instructor} (${gradeTerm})`}>
+            <GradeBar distribution={distribution} />
             <div className="flex items-center justify-between mt-2 text-xs">
-              <span className={latestGrade.c_or_below_pct > 40 ? 'text-red-600 font-medium' : latestGrade.c_or_below_pct > 20 ? 'text-amber-600' : 'text-green-600'}>
-                {latestGrade.c_or_below_pct}% C or below
+              <span className={cOrBelowPct > 40 ? 'text-red-600 font-medium' : cOrBelowPct > 20 ? 'text-amber-600' : 'text-green-600'}>
+                {cOrBelowPct}% C or below
               </span>
-              <span className="text-[#999]">{latestGrade.withdraw_rate}% withdrew</span>
+              <span className="text-[#999]">{otherPct}% withdrew / other</span>
             </div>
           </Section>
         )}
@@ -120,12 +130,19 @@ function ProfCard({ prof }) {
   return (
     <div className="bg-[#f7f6f1] rounded-lg p-3 space-y-1">
       <p className="text-xs font-semibold text-[#111]">{prof.name}</p>
-      <div className="flex items-center gap-3 text-xs">
-        <span className="flex items-center gap-1 text-[#CC9C00] font-medium">
-          <Star size={10} fill="#CC9C00" />
-          {prof.rating}/5
-        </span>
-        <span className="text-[#999]">Difficulty {prof.difficulty}/5</span>
+      <div className="flex items-center gap-3 text-xs flex-wrap">
+        {prof.rating !== undefined && (
+          <span className="flex items-center gap-1 text-[#CC9C00] font-medium">
+            <Star size={10} fill="#CC9C00" />
+            {prof.rating}/5
+          </span>
+        )}
+        {prof.ratings_count !== undefined && (
+          <span className="text-[#999]">{prof.ratings_count} reviews</span>
+        )}
+        {prof.students_total !== undefined && (
+          <span className="text-[#999]">· {prof.students_total.toLocaleString()} students</span>
+        )}
       </div>
       {prof.would_take_again_pct !== undefined && (
         <div className="flex items-center gap-1 text-xs">
@@ -134,6 +151,9 @@ function ProfCard({ prof }) {
             {prof.would_take_again_pct}% would take again
           </span>
         </div>
+      )}
+      {prof.rating_source && (
+        <p className="text-[10px] text-[#bbb] uppercase tracking-wider">via {prof.rating_source}</p>
       )}
       {prof.quote && (
         <p className="text-xs text-[#999] italic leading-relaxed border-t border-[#e8e7e0] pt-2 mt-1">
@@ -145,19 +165,25 @@ function ProfCard({ prof }) {
 }
 
 function GradeBar({ distribution }) {
-  const COLORS = { A: '#FFC300', B: '#111111', C: '#f59e0b', D: '#f97316', F: '#ef4444', W: '#ccc' }
+  if (!distribution || typeof distribution !== 'object') return null
+  const COLORS = { A: '#10b981', B: '#FFC300', C: '#f59e0b', D: '#f97316', F: '#ef4444', W: '#9ca3af', O: '#9ca3af' }
+  // Preserve A→F→O ordering regardless of JSON key order
+  const ORDER = ['A', 'B', 'C', 'D', 'F', 'O', 'W']
+  const entries = ORDER
+    .filter(g => distribution[g] !== undefined)
+    .map(g => [g, distribution[g]])
   return (
     <div className="space-y-1.5">
-      {Object.entries(distribution).map(([grade, pct]) => (
+      {entries.map(([grade, pct]) => (
         <div key={grade} className="flex items-center gap-2">
           <span className="text-xs text-[#999] w-3">{grade}</span>
-          <div className="flex-1 bg-[#f0efe9] rounded-full h-1.5">
+          <div className="flex-1 bg-[#f0efe9] rounded-full h-1.5 overflow-hidden">
             <div
-              className="h-1.5 rounded-full"
-              style={{ width: `${pct}%`, backgroundColor: COLORS[grade] ?? '#999' }}
+              className="h-1.5 rounded-full transition-all"
+              style={{ width: `${Math.min(100, pct)}%`, backgroundColor: COLORS[grade] ?? '#999' }}
             />
           </div>
-          <span className="text-xs text-[#999] w-7 text-right">{pct}%</span>
+          <span className="text-xs text-[#999] w-10 text-right tabular-nums">{pct}%</span>
         </div>
       ))}
     </div>
