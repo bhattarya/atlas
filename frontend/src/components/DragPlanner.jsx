@@ -36,12 +36,10 @@ export default function DragPlanner({ plannerState, onDrop }) {
   const handleDragEnd = async ({ active, over }) => {
     setActiveId(null)
     if (!over) return
-
     const courseId = active.id
     const target = over.id
     const source = findSource(plannerState, courseId)
     if (source === target) return
-
     const course = findCourse(plannerState, courseId)
 
     if (target !== 'bank') {
@@ -55,9 +53,7 @@ export default function DragPlanner({ plannerState, onDrop }) {
           showToast(result.errors[0] || 'Invalid placement')
           return
         }
-        if (result.warnings.length > 0) {
-          showToast(result.warnings[0], 'warning')
-        }
+        if (result.warnings.length > 0) showToast(result.warnings[0], 'warning')
       } catch {
         showToast('Validation unavailable — placing anyway', 'warning')
       }
@@ -72,21 +68,17 @@ export default function DragPlanner({ plannerState, onDrop }) {
       onDragEnd={handleDragEnd}
       collisionDetection={pointerWithin}
     >
-      <div className="shrink-0 bg-[#0d0d0d] border-t border-[#1a1a1a] px-5 pt-3 pb-4 flex flex-col gap-2" style={{ height: '255px' }}>
+      <div className="shrink-0 bg-black border-t border-[#222] px-5 pt-3 pb-4 flex flex-col gap-2" style={{ height: '240px' }}>
         <div className="flex items-center justify-between">
-          <p className="text-[10px] font-bold text-[#555] uppercase tracking-widest">4-Year Planner</p>
-          <p className="text-[9px] text-[#333]">drag courses into semesters · drops are validated</p>
+          <p className="text-[10px] font-bold text-[#FFC300] uppercase tracking-widest">4-Year Planner</p>
+          <p className="text-[9px] text-[#444]">drag courses into semesters · prereqs validated on drop</p>
         </div>
 
         <BankZone courses={plannerState.bank} />
 
         <div className="flex gap-2 flex-1 min-h-0">
           {SEMESTERS.map(sem => (
-            <SemesterColumn
-              key={sem}
-              semester={sem}
-              courses={plannerState.semesters[sem]}
-            />
+            <SemesterColumn key={sem} semester={sem} courses={plannerState.semesters[sem]} />
           ))}
         </div>
       </div>
@@ -97,7 +89,7 @@ export default function DragPlanner({ plannerState, onDrop }) {
 
       {toast && (
         <div className={`fixed bottom-20 right-5 z-[60] px-4 py-2.5 rounded-lg text-sm font-medium shadow-2xl pointer-events-none ${
-          toast.type === 'warning' ? 'bg-[#f59e0b] text-black' : 'bg-[#ef4444] text-white'
+          toast.type === 'warning' ? 'bg-[#FFC300] text-black' : 'bg-[#ef4444] text-white'
         }`}>
           {toast.message}
         </div>
@@ -111,12 +103,12 @@ function BankZone({ courses }) {
   return (
     <div
       ref={setNodeRef}
-      className={`flex gap-1.5 overflow-x-auto px-2 py-1.5 rounded-lg min-h-[38px] transition-colors shrink-0 ${
-        isOver ? 'bg-[#1a1a1a] ring-1 ring-[#06b6d4]/50' : 'bg-[#111]'
+      className={`flex gap-1.5 overflow-x-auto px-2 py-1.5 rounded-lg min-h-[36px] transition-colors shrink-0 ${
+        isOver ? 'bg-[#1a1a1a] ring-1 ring-[#FFC300]/40' : 'bg-[#111]'
       }`}
     >
       {courses.length === 0 && (
-        <p className="text-[9px] text-[#2a2a2a] self-center pl-1 italic">all courses placed</p>
+        <p className="text-[9px] text-[#333] self-center pl-1 italic">all courses placed</p>
       )}
       {courses.map(c => <CourseCard key={c.id} course={c} />)}
     </div>
@@ -125,7 +117,6 @@ function BankZone({ courses }) {
 
 function SemesterColumn({ semester, courses }) {
   const { setNodeRef, isOver } = useDroppable({ id: semester })
-  const isSpring = semester.toLowerCase().includes('spring')
   const totalCredits = courses.reduce((s, c) => s + (c.credits ?? 3), 0)
   const isHeavy = totalCredits > 19.5
 
@@ -134,14 +125,14 @@ function SemesterColumn({ semester, courses }) {
       ref={setNodeRef}
       className={`flex-1 flex flex-col rounded-lg border transition-all duration-150 ${
         isOver
-          ? 'border-[#06b6d4] bg-[#071518] shadow-[0_0_14px_rgba(6,182,212,0.12)]'
+          ? 'border-[#FFC300] bg-[#181200] shadow-[0_0_14px_rgba(255,195,0,0.12)]'
           : 'border-[#1f1f1f] bg-[#111]'
       }`}
     >
       <div className="flex items-center justify-between px-2.5 pt-1.5 pb-1 border-b border-[#1a1a1a] shrink-0">
-        <span className="text-[9px] font-bold text-[#444]">{semester}</span>
+        <span className="text-[9px] font-bold text-[#555]">{semester}</span>
         {totalCredits > 0 && (
-          <span className={`text-[8px] font-semibold ${isHeavy ? 'text-[#ec4899]' : 'text-[#333]'}`}>
+          <span className={`text-[8px] font-semibold ${isHeavy ? 'text-[#ef4444]' : 'text-[#444]'}`}>
             {totalCredits} cr{isHeavy ? ' !' : ''}
           </span>
         )}
@@ -156,9 +147,6 @@ function SemesterColumn({ semester, courses }) {
 function CourseCard({ course, compact, overlay }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: course.id })
 
-  const isBottleneck = course.is_bottleneck
-  const isSpringOnly = course.spring_only && !isBottleneck
-
   return (
     <div
       ref={setNodeRef}
@@ -168,10 +156,10 @@ function CourseCard({ course, compact, overlay }) {
         shrink-0 rounded cursor-grab active:cursor-grabbing select-none transition-opacity
         ${compact ? 'px-2 py-0.5' : 'px-2.5 py-1.5'}
         ${isDragging ? 'opacity-25' : 'opacity-100'}
-        ${overlay ? 'shadow-2xl ring-1 ring-[#06b6d4]/70 rotate-1 scale-105' : ''}
-        ${isBottleneck
+        ${overlay ? 'shadow-2xl ring-1 ring-[#FFC300]/60 rotate-1 scale-105' : ''}
+        ${course.is_bottleneck
           ? 'bg-[#1f0a0a] border border-[#ef4444]/30 text-[#f87171]'
-          : isSpringOnly
+          : course.spring_only
           ? 'bg-[#161100] border border-[#FFC300]/25 text-[#FFC300]'
           : 'bg-[#1a1a1a] border border-[#252525] text-[#aaa]'
         }
@@ -181,9 +169,7 @@ function CourseCard({ course, compact, overlay }) {
         {course.id}
       </p>
       {!compact && course.name && (
-        <p className="text-[8px] text-[#555] mt-0.5 leading-none truncate max-w-[90px]">
-          {course.name}
-        </p>
+        <p className="text-[8px] text-[#555] mt-0.5 leading-none truncate max-w-[90px]">{course.name}</p>
       )}
     </div>
   )
