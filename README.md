@@ -69,4 +69,4 @@ Backend runs on `http://localhost:8000`, frontend on `http://localhost:5173`.
 Built at MLH Hackathon in 12 hours.
 
 - Arya Bhatt — backend, agents, API
-- Claude (Anthropic) — pair programming, architecture, agent design
+- Dhruv Shah - Full stack
