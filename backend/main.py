@@ -16,6 +16,7 @@ load_dotenv()
 
 from agents.cartographer import parse_audit, amend_with_minor
 from agents.pilot import run_pilot, confirm_session
+from agents.validator import validate_placement as _validate_placement
 
 app = FastAPI(title="Atlas Backend")
 
@@ -55,10 +56,8 @@ async def parse(
     try:
         result = parse_audit(audit_bytes, transcript_bytes, added_minor)
     except ValueError as e:
-        # Cartographer rejected the PDF (not a UMBC audit)
         raise HTTPException(status_code=422, detail=str(e))
     except Exception:
-        # Gemini API failure — fall back to cache silently
         cached_path = DATA_DIR / "cached_audit.json"
         if cached_path.exists():
             result = json.loads(cached_path.read_text())
@@ -70,6 +69,12 @@ async def parse(
 
 class ParseCachedRequest(BaseModel):
     added_minor: Optional[str] = None
+
+
+class ValidatePlacementRequest(BaseModel):
+    course_code: str
+    semester: str
+    current_plan: dict  # {semester_name: [course_code, ...]}
 
 
 @app.post("/api/parse-cached")
@@ -118,25 +123,15 @@ async def pilot_stream(session_id: str):
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
-class ValidatePlacementRequest(BaseModel):
-    course_code: str
-    semester: str
-    current_plan: dict
-
-
 @app.post("/api/validate-placement")
 def validate_placement_endpoint(req: ValidatePlacementRequest):
     cached_path = DATA_DIR / "cached_audit.json"
     if not cached_path.exists():
-        raise HTTPException(status_code=404, detail="No cached audit")
+        return {"valid": True, "errors": [], "warnings": []}
     audit = json.loads(cached_path.read_text())
     all_courses = audit.get("courses", [])
     completed = [c["id"] for c in all_courses if c.get("status") == "completed"]
-    from agents.validator import validate_placement
-    result = validate_placement(
-        req.course_code, req.semester, req.current_plan, completed, all_courses
-    )
-    return result
+    return _validate_placement(req.course_code, req.semester, req.current_plan, completed, all_courses)
 
 
 @app.post("/api/pilot-confirm/{session_id}")
