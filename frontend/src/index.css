@@ -23,3 +23,18 @@ body {
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d0cfc8; border-radius: 99px; }
+
+/* Bubble hover lift */
+.atlas-bubble:hover {
+  transform: scale(1.05) !important;
+  filter: brightness(1.04);
+}
+.atlas-bubble:active {
+  cursor: grabbing !important;
+}
+
+/* In-progress pulse dot */
+@keyframes atlasPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.85); }
+}

@@ -4,7 +4,11 @@ import MapView from '../components/MapView'
 import CourseDrawer from '../components/CourseDrawer'
 import PilotBar from '../components/PilotBar'
 import PilotPanel from '../components/PilotPanel'
+import DragPlanner from '../components/DragPlanner'
 import { parseAudit, parseCached, fetchCourseMetadata, startPilot, confirmPilot } from '../lib/api'
+
+const PLANNER_SEMS = ['Fall 2026', 'Spring 2027', 'Fall 2027', 'Spring 2028']
+const EMPTY_SEMS = () => Object.fromEntries(PLANNER_SEMS.map(s => [s, []]))
 
 export default function Dashboard() {
   const [mapData, setMapData] = useState(null)
@@ -19,6 +23,7 @@ export default function Dashboard() {
   const [courseMetadata, setCourseMetadata] = useState(null)
   const [parseError, setParseError] = useState(null)
   const [seats, setSeats] = useState(5)
+  const [plannerState, setPlannerState] = useState({ bank: [], semesters: EMPTY_SEMS() })
 
   useEffect(() => {
     fetchCourseMetadata()
@@ -33,6 +38,21 @@ export default function Dashboard() {
       setSeats(prev => Math.max(0, prev - Math.floor(Math.random() * 2)))
     }, 8000)
     return () => clearInterval(id)
+  }, [mapData])
+
+  // Seed planner when audit loads
+  useEffect(() => {
+    if (!mapData?.courses) return
+    const bank = []
+    const semesters = EMPTY_SEMS()
+    mapData.courses
+      .filter(c => c.status !== 'completed' && c.status !== 'in_progress')
+      .forEach(c => {
+        const sem = PLANNER_SEMS.find(s => s === c.planned_semester)
+        if (sem) semesters[sem].push(c)
+        else bank.push(c)
+      })
+    setPlannerState({ bank, semesters })
   }, [mapData])
 
   // SSE stream
@@ -100,6 +120,24 @@ export default function Dashboard() {
     } : prev)
   }, [sessionId])
 
+  const handlePlannerDrop = useCallback((courseId, source, target, course) => {
+    setPlannerState(prev => {
+      const next = {
+        bank: [...prev.bank],
+        semesters: Object.fromEntries(
+          Object.entries(prev.semesters).map(([k, v]) => [k, [...v]])
+        ),
+      }
+      // Remove from source
+      if (source === 'bank') next.bank = next.bank.filter(c => c.id !== courseId)
+      else next.semesters[source] = next.semesters[source].filter(c => c.id !== courseId)
+      // Add to target
+      if (target === 'bank') next.bank.push(course)
+      else next.semesters[target] = [...(next.semesters[target] ?? []), course]
+      return next
+    })
+  }, [])
+
   return (
     <div className="flex flex-col h-screen bg-[#f7f6f1] text-[#111111] overflow-hidden">
       <TopBar onUpload={handleAuditUpload} loading={loading} mapData={mapData} />
@@ -126,6 +164,10 @@ export default function Dashboard() {
           />
         )}
       </div>
+
+      {mapData && (
+        <DragPlanner plannerState={plannerState} onDrop={handlePlannerDrop} />
+      )}
 
       <PilotBar mapData={mapData} seats={seats} onLaunch={handlePilotStart} />
 

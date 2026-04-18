@@ -11,14 +11,6 @@ SYSTEM = """You are Cartographer, an AI degree-audit parser for UMBC COEIT stude
 
 Given a degree audit PDF (and optionally an unofficial transcript), extract and return structured JSON describing the student's academic plan.
 
-FIRST — validate the document:
-Before doing anything else, check whether this PDF is actually a UMBC degree audit or academic transcript.
-A valid UMBC audit contains: course codes like CMSC/IS/MATH, a student name, credit counts, and degree requirements.
-If the PDF is NOT a UMBC academic document (e.g. it's a random article, resume, receipt, or unrelated document),
-return ONLY: {"valid": false, "error": "Not a UMBC degree audit"}
-
-If it IS a valid audit, return the full JSON with "valid": true.
-
 Rules:
 1. Detect the student's major from the audit (CS, IS, CE, EE, etc.)
 2. Detect any declared minors from the audit
@@ -39,7 +31,6 @@ REFERENCE FACTS (always apply these regardless of what the audit says):
 
 Return ONLY valid JSON matching this schema:
 {
-  "valid": true,
   "student_name": string,
   "major": string,
   "minor": string | null,
@@ -93,13 +84,10 @@ def parse_audit(
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM,
             response_mime_type="application/json",
-            thinking_config=types.ThinkingConfig(thinking_budget=0),
         ),
     )
 
     result = json.loads(response.text)
-    if not result.get("valid", True):
-        raise ValueError(result.get("error", "Not a UMBC degree audit"))
     return result
 
 
