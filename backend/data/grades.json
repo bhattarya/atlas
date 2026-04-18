@@ -1,0 +1,6 @@
+{
+  "CMSC 441": {"avg_grade": "B", "pass_rate": 0.78, "withdraw_rate": 0.12},
+  "CMSC 341": {"avg_grade": "B+", "pass_rate": 0.85, "withdraw_rate": 0.08},
+  "CMSC 411": {"avg_grade": "B-", "pass_rate": 0.80, "withdraw_rate": 0.10},
+  "CMSC 471": {"avg_grade": "A-", "pass_rate": 0.90, "withdraw_rate": 0.05}
+}

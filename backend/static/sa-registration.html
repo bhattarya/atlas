@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UMBC Student Affairs — Registration</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; font-size: 13px; background: #f0f0f0; color: #333; }
+
+    /* Header */
+    #header { background: #ffc300; padding: 8px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 3px solid #000; }
+    #header .logo { font-size: 20px; font-weight: bold; color: #000; letter-spacing: -0.5px; }
+    #header .subtitle { font-size: 11px; color: #333; }
+
+    /* Nav bar */
+    #navbar { background: #000; padding: 6px 16px; display: flex; gap: 20px; }
+    #navbar a { color: #ffc300; text-decoration: none; font-size: 12px; font-weight: bold; }
+    #navbar a:hover { text-decoration: underline; }
+
+    /* Main */
+    #main { max-width: 960px; margin: 16px auto; background: #fff; border: 1px solid #ccc; padding: 16px; }
+
+    h2 { font-size: 16px; color: #000; border-bottom: 2px solid #ffc300; padding-bottom: 6px; margin-bottom: 12px; }
+
+    /* Search */
+    #search-box { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+    #search-box label { font-weight: bold; }
+    #search-box input { border: 1px solid #999; padding: 4px 8px; font-size: 13px; width: 160px; }
+    #search-box button { background: #000; color: #ffc300; border: none; padding: 5px 14px; font-size: 13px; font-weight: bold; cursor: pointer; }
+    #search-box button:hover { background: #333; }
+
+    /* Results table */
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th { background: #000; color: #ffc300; padding: 6px 8px; text-align: left; font-size: 12px; }
+    td { padding: 5px 8px; border-bottom: 1px solid #e0e0e0; font-size: 12px; }
+    tr:hover td { background: #fffbe6; }
+    .seats-low { color: #c00; font-weight: bold; }
+    .seats-none { color: #999; }
+
+    /* Add button */
+    .add-btn { background: #006400; color: #fff; border: none; padding: 3px 10px; font-size: 11px; cursor: pointer; font-weight: bold; border-radius: 3px; }
+    .add-btn:hover { background: #004d00; }
+    .add-btn:disabled { background: #999; cursor: default; }
+
+    /* Cart */
+    #cart-section { border: 1px solid #ccc; padding: 12px; background: #f9f9f9; }
+    #cart-section h3 { font-size: 14px; margin-bottom: 8px; }
+    #cart-empty { color: #999; font-style: italic; }
+    #cart-list { list-style: none; }
+    #cart-list li { padding: 4px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+
+    /* Submit */
+    #submit-area { margin-top: 14px; text-align: right; }
+    #submit-btn { background: #003366; color: #fff; border: none; padding: 8px 24px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; }
+    #submit-btn:hover { background: #002244; }
+    #submit-btn:disabled { background: #999; cursor: default; }
+
+    #confirm-msg { display: none; color: #006400; font-weight: bold; font-size: 14px; margin-top: 10px; }
+
+    /* Status */
+    #status-msg { color: #c00; font-size: 12px; margin-top: 4px; min-height: 16px; }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo">UMBC</div>
+  <div>
+    <div style="font-weight:bold;font-size:14px;">Student Affairs — Course Registration</div>
+    <div class="subtitle">Spring 2026 &nbsp;|&nbsp; Logged in as: <strong>astudent1@umbc.edu</strong></div>
+  </div>
+</div>
+
+<div id="navbar">
+  <a href="#">My Schedule</a>
+  <a href="#">Registration</a>
+  <a href="#">Degree Audit</a>
+  <a href="#">Billing</a>
+  <a href="#">Logout</a>
+</div>
+
+<div id="main">
+  <h2>Add / Drop Courses</h2>
+
+  <div id="search-box">
+    <label for="course-input">Course ID:</label>
+    <input type="text" id="course-input" placeholder="e.g. CMSC 441" />
+    <button onclick="searchCourse()">Search</button>
+  </div>
+  <div id="status-msg"></div>
+
+  <div id="results-area" style="display:none;">
+    <h2 id="results-title">Search Results</h2>
+    <table id="results-table">
+      <thead>
+        <tr>
+          <th>Course</th>
+          <th>Title</th>
+          <th>Sec</th>
+          <th>Instructor</th>
+          <th>Days</th>
+          <th>Time</th>
+          <th>Room</th>
+          <th>Credits</th>
+          <th>Open</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="results-body"></tbody>
+    </table>
+  </div>
+
+  <div id="cart-section">
+    <h3>Registration Cart</h3>
+    <div id="cart-empty">No courses added yet.</div>
+    <ul id="cart-list" style="display:none;"></ul>
+    <div id="submit-area">
+      <button id="submit-btn" disabled onclick="submitRegistration()">Submit Registration</button>
+    </div>
+    <div id="confirm-msg">Registration submitted successfully!</div>
+  </div>
+</div>
+
+<script>
+const COURSES = {
+  "CMSC 441": {
+    name: "Design & Analysis of Algorithms",
+    credits: 3,
+    sections: [
+      { sec: "01", instructor: "desJardins, M.", days: "MWF", time: "9:00-9:50am", room: "ITE 239", open: 0 },
+      { sec: "02", instructor: "Chang, R.", days: "TuTh", time: "11:30am-12:45pm", room: "ITE 227", open: 5 }
+    ]
+  },
+  "CMSC 447": {
+    name: "Software Engineering I",
+    credits: 3,
+    sections: [
+      { sec: "01", instructor: "Squire, M.", days: "MWF", time: "10:00-10:50am", room: "ITE 101", open: 12 }
+    ]
+  },
+  "CMSC 471": {
+    name: "Intro to Artificial Intelligence",
+    credits: 3,
+    sections: [
+      { sec: "01", instructor: "Oates, T.", days: "MWF", time: "1:00-1:50pm", room: "ITE 104", open: 8 }
+    ]
+  },
+  "CMSC 411": {
+    name: "Computer Architecture",
+    credits: 3,
+    sections: [
+      { sec: "01", instructor: "Bourgeois, A.", days: "TuTh", time: "2:30-3:45pm", room: "ITE 239", open: 3 }
+    ]
+  },
+  "CMSC 461": {
+    name: "Database Management Systems",
+    credits: 3,
+    sections: [
+      { sec: "01", instructor: "Nicholas, C.", days: "TuTh", time: "10:00-11:15am", room: "ITE 102", open: 15 }
+    ]
+  }
+};
+
+const cart = [];
+
+function searchCourse() {
+  const input = document.getElementById('course-input').value.trim().toUpperCase();
+  const statusEl = document.getElementById('status-msg');
+  const resultsArea = document.getElementById('results-area');
+  const tbody = document.getElementById('results-body');
+  const titleEl = document.getElementById('results-title');
+
+  if (!input) { statusEl.textContent = 'Please enter a course ID.'; return; }
+
+  const course = COURSES[input];
+  if (!course) {
+    statusEl.textContent = `No results found for "${input}".`;
+    resultsArea.style.display = 'none';
+    return;
+  }
+
+  statusEl.textContent = '';
+  titleEl.textContent = `Results for: ${input}`;
+  tbody.innerHTML = '';
+
+  course.sections.forEach(sec => {
+    const alreadyAdded = cart.some(c => c.id === input && c.sec === sec.sec);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${input}</strong></td>
+      <td>${course.name}</td>
+      <td>${sec.sec}</td>
+      <td>${sec.instructor}</td>
+      <td>${sec.days}</td>
+      <td>${sec.time}</td>
+      <td>${sec.room}</td>
+      <td>${course.credits}</td>
+      <td class="${sec.open === 0 ? 'seats-none' : sec.open <= 3 ? 'seats-low' : ''}">${sec.open === 0 ? 'CLOSED' : sec.open}</td>
+      <td>
+        <button class="add-btn" id="add-${input.replace(' ','-')}-${sec.sec}"
+          onclick="addCourse('${input}','${sec.sec}')"
+          ${sec.open === 0 || alreadyAdded ? 'disabled' : ''}>
+          ${alreadyAdded ? 'Added' : 'Add'}
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  resultsArea.style.display = 'block';
+}
+
+function addCourse(id, sec) {
+  const course = COURSES[id];
+  const section = course.sections.find(s => s.sec === sec);
+  cart.push({ id, sec, name: course.name, time: section.time, days: section.days, credits: course.credits });
+
+  const btn = document.getElementById(`add-${id.replace(' ','-')}-${sec}`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Added'; }
+
+  renderCart();
+}
+
+function renderCart() {
+  const cartEmpty = document.getElementById('cart-empty');
+  const cartList = document.getElementById('cart-list');
+  const submitBtn = document.getElementById('submit-btn');
+
+  if (cart.length === 0) {
+    cartEmpty.style.display = '';
+    cartList.style.display = 'none';
+    submitBtn.disabled = true;
+    return;
+  }
+
+  cartEmpty.style.display = 'none';
+  cartList.style.display = '';
+  cartList.innerHTML = '';
+
+  cart.forEach(c => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span><strong>${c.id}</strong> Sec ${c.sec} — ${c.name}</span><span>${c.days} ${c.time} &nbsp; ${c.credits} cr</span>`;
+    cartList.appendChild(li);
+  });
+
+  submitBtn.disabled = false;
+}
+
+function submitRegistration() {
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('submit-btn').textContent = 'Processing…';
+  setTimeout(() => {
+    document.getElementById('submit-btn').style.display = 'none';
+    document.getElementById('confirm-msg').style.display = 'block';
+  }, 800);
+}
+
+document.getElementById('course-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') searchCourse();
+});
+</script>
+</body>
+</html>
