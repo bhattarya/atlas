@@ -19,6 +19,7 @@ export default function App() {
   const [auditFile, setAuditFile] = useState(null)
   const [transcriptFile, setTranscriptFile] = useState(null)
   const [courseMetadata, setCourseMetadata] = useState(null)
+  const [parseError, setParseError] = useState(null)
 
   useEffect(() => {
     fetchCourseMetadata()
@@ -29,11 +30,14 @@ export default function App() {
   const handleAuditUpload = useCallback(async (audit, transcript) => {
     setAuditFile(audit)
     setTranscriptFile(transcript)
+    setParseError(null)
     setLoading(true)
     try {
       const data = await parseAudit(audit, transcript, addedMinor)
       setMapData(data)
     } catch (err) {
+      const msg = err.message?.includes('422') ? 'Not a UMBC degree audit. Please upload your audit PDF.' : 'Parse failed — check backend logs.'
+      setParseError(msg)
       console.error('Parse failed:', err)
     } finally {
       setLoading(false)
@@ -74,6 +78,11 @@ export default function App() {
       <CountdownBanner />
       <StatsBar mapData={mapData} />
       <MinorToggle selected={addedMinor} onChange={handleMinorChange} />
+      {parseError && (
+        <div className="mx-6 mt-3 px-4 py-2 rounded-lg bg-[#450a0a] border border-[#ef4444] text-[#fca5a5] text-sm">
+          {parseError}
+        </div>
+      )}
       <div className="flex flex-1 overflow-hidden relative">
         <MapView
           mapData={mapData}
