@@ -6,7 +6,10 @@ export async function parseAudit(auditFile, transcriptFile = null, addedMinor = 
   if (transcriptFile) form.append('transcript', transcriptFile)
   if (addedMinor) form.append('added_minor', addedMinor)
   const res = await fetch(`${BASE}/api/parse`, { method: 'POST', body: form })
-  if (!res.ok) throw new Error(`Parse failed: ${res.status}`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(`${res.status}: ${body.detail ?? 'Parse failed'}`)
+  }
   return res.json()
 }
 

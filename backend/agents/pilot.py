@@ -1,17 +1,28 @@
 import os
 import asyncio
+import json
 import base64
 from playwright.async_api import async_playwright
 
-PILOT_SESSIONS: dict[str, dict] = {}
-
-GOAL = (
-    "Register for CMSC 441 Section 02. "
-    "Search for CMSC 441, click Add on Section 02, "
-    "stop at the Submit Registration button without clicking it."
-)
+PILOT_SESSIONS: dict = {}
 
 SA_URL = "http://localhost:8000/static/sa-registration.html"
+
+# Scripted steps — selectors are known since we control the page.
+# Gemini vision is used between steps to generate narration for the SSE stream.
+STEPS = [
+    {"action": "fill",   "selector": "#course-input", "value": "CMSC 441"},
+    {"action": "click",  "selector": "button:has-text('Search')"},
+    {"action": "wait",   "ms": 900},
+    {"action": "click",  "selector": "#add-CMSC-441-02"},
+    {"action": "wait",   "ms": 600},
+    {"action": "stop"},
+]
+
+NARRATE_PROMPT = """You are narrating an AI registration agent's actions for a student watching in real time.
+Look at this screenshot of a UMBC course registration page and write ONE short sentence (max 12 words)
+describing what the agent just did or what you observe. Be specific — mention course names, buttons, seat counts.
+No intro, no punctuation at the end, just the sentence."""
 
 
 async def run_pilot(session_id: str, queue: asyncio.Queue):
@@ -29,65 +40,55 @@ async def run_pilot(session_id: str, queue: asyncio.Queue):
         browser = await p.chromium.launch(headless=False)
         page = await browser.new_page(viewport={"width": 1280, "height": 800})
         await page.goto(SA_URL)
+        await asyncio.sleep(0.8)
 
         PILOT_SESSIONS[session_id] = {"browser": browser, "page": page, "status": "running"}
 
-        messages = [{"role": "user", "parts": [GOAL]}]
+        for step in STEPS:
+            try:
+                if step["action"] == "fill":
+                    await page.fill(step["selector"], step["value"])
 
-        for turn in range(10):
-            screenshot = await page.screenshot()
-            screenshot_b64 = base64.b64encode(screenshot).decode()
+                elif step["action"] == "click":
+                    await page.click(step["selector"])
 
-            messages.append({
-                "role": "user",
-                "parts": [
-                    {"inline_data": {"mime_type": "image/png", "data": screenshot_b64}},
-                    "What is the next action to take?",
-                ],
-            })
+                elif step["action"] == "wait":
+                    await asyncio.sleep(step["ms"] / 1000)
 
-            tools = [
-                types.Tool(
-                    computer_use=types.ComputerUseTool(display_width=1280, display_height=800)
-                )
-            ]
+                elif step["action"] == "stop":
+                    narration = await _narrate(client, page, types)
+                    await queue.put({"type": "waiting", "description": narration})
+                    PILOT_SESSIONS[session_id]["status"] = "waiting"
+                    return
 
-            response = client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=messages,
-                config=types.GenerateContentConfig(tools=tools),
-            )
-
-            action = None
-            for part in response.candidates[0].content.parts:
-                if hasattr(part, "computer_use") and part.computer_use:
-                    action = part.computer_use
-                    break
-
-            if action is None:
-                await queue.put({"type": "error", "message": "No action returned from model"})
-                break
-
-            action_type = action.action if hasattr(action, "action") else str(action)
-
-            if "submit" in str(action).lower() or turn >= 8:
-                await queue.put({
-                    "type": "waiting",
-                    "description": "Pilot stopped at Submit Registration. Ready for your confirmation.",
-                })
-                PILOT_SESSIONS[session_id]["status"] = "waiting"
+            except Exception as e:
+                await queue.put({"type": "error", "message": f"Step failed ({step['action']}): {e}"})
                 return
 
-            desc = _describe_action(action)
-            await queue.put({"type": "action", "description": desc})
+            # Narrate every non-wait step
+            if step["action"] not in ("wait",):
+                narration = await _narrate(client, page, types)
+                await queue.put({"type": "action", "description": narration})
 
-            await _execute_action(page, action)
-            await asyncio.sleep(0.8)
+            await asyncio.sleep(0.3)
 
-            messages.append({"role": "model", "parts": [str(action)]})
-
-        await queue.put({"type": "waiting", "description": "Pilot ready. Click Confirm to submit."})
+        await queue.put({"type": "waiting", "description": "Pilot complete. Confirm to submit."})
         PILOT_SESSIONS[session_id]["status"] = "waiting"
+
+
+async def _narrate(client, page, types) -> str:
+    try:
+        screenshot = await page.screenshot()
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                types.Part.from_bytes(data=screenshot, mime_type="image/png"),
+                NARRATE_PROMPT,
+            ],
+        )
+        return response.text.strip().strip('"').strip("'")
+    except Exception:
+        return "Agent acting on registration page…"
 
 
 async def confirm_session(session_id: str) -> dict:
@@ -97,7 +98,7 @@ async def confirm_session(session_id: str) -> dict:
 
     page = session["page"]
     try:
-        submit_btn = await page.query_selector("button#submit-btn, button:has-text('Submit Registration')")
+        submit_btn = await page.query_selector("#submit-btn")
         if submit_btn:
             await submit_btn.click()
         return {"status": "submitted"}
@@ -108,28 +109,3 @@ async def confirm_session(session_id: str) -> dict:
             await session["browser"].close()
         except Exception:
             pass
-
-
-def _describe_action(action) -> str:
-    t = getattr(action, "action", "")
-    if t == "click":
-        return f"Click at ({action.coordinate[0]}, {action.coordinate[1]})"
-    if t == "type":
-        return f"Type: {action.text!r}"
-    if t == "screenshot":
-        return "Take screenshot"
-    if t == "scroll":
-        return f"Scroll at ({action.coordinate[0]}, {action.coordinate[1]})"
-    return f"Action: {t}"
-
-
-async def _execute_action(page, action):
-    t = getattr(action, "action", "")
-    if t == "click":
-        await page.mouse.click(action.coordinate[0], action.coordinate[1])
-    elif t == "type":
-        await page.keyboard.type(action.text)
-    elif t == "scroll":
-        await page.mouse.wheel(0, action.delta_y if hasattr(action, "delta_y") else 100)
-    elif t == "key":
-        await page.keyboard.press(action.key)

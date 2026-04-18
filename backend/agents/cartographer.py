@@ -11,6 +11,14 @@ SYSTEM = """You are Cartographer, an AI degree-audit parser for UMBC COEIT stude
 
 Given a degree audit PDF (and optionally an unofficial transcript), extract and return structured JSON describing the student's academic plan.
 
+FIRST — validate the document:
+Before doing anything else, check whether this PDF is actually a UMBC degree audit or academic transcript.
+A valid UMBC audit contains: course codes like CMSC/IS/MATH, a student name, credit counts, and degree requirements.
+If the PDF is NOT a UMBC academic document (e.g. it's a random article, resume, receipt, or unrelated document),
+return ONLY: {"valid": false, "error": "Not a UMBC degree audit"}
+
+If it IS a valid audit, return the full JSON with "valid": true.
+
 Rules:
 1. Detect the student's major from the audit (CS, IS, CE, EE, etc.)
 2. Detect any declared minors from the audit
@@ -31,6 +39,7 @@ REFERENCE FACTS (always apply these regardless of what the audit says):
 
 Return ONLY valid JSON matching this schema:
 {
+  "valid": true,
   "student_name": string,
   "major": string,
   "minor": string | null,
@@ -79,7 +88,7 @@ def parse_audit(
     parts.append(prompt)
 
     response = client.models.generate_content(
-        model="gemini-2.0-flash",
+        model="gemini-2.5-flash",
         contents=parts,
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM,
@@ -87,7 +96,10 @@ def parse_audit(
         ),
     )
 
-    return json.loads(response.text)
+    result = json.loads(response.text)
+    if not result.get("valid", True):
+        raise ValueError(result.get("error", "Not a UMBC degree audit"))
+    return result
 
 
 def amend_with_minor(cached_audit: dict, minor_name: Optional[str]) -> dict:
