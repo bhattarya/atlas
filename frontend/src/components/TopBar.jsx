@@ -92,7 +92,7 @@ export default function TopBar({ onUpload, loading, mapData }) {
         {user && (
           <div className="flex items-center gap-2 ml-1 pl-3 border-l border-[#1e1e1e]">
             {user.photoURL ? (
-              <img src={user.photoURL} alt="" className="w-6 h-6 rounded-full" />
+              <img src={user.photoURL} alt="" referrerPolicy="no-referrer" className="w-6 h-6 rounded-full" />
             ) : (
               <div className="w-6 h-6 rounded-full bg-[#FFC300]/20 flex items-center justify-center">
                 <span className="text-[10px] font-bold text-[#FFC300]">
