@@ -7,7 +7,12 @@ import PilotBar from './components/PilotBar'
 import PilotPanel from './components/PilotPanel'
 import CountdownBanner from './components/CountdownBanner'
 import MinorToggle from './components/MinorToggle'
+import DragPlanner from './components/DragPlanner'
 import { parseAudit, parseCached, fetchCourseMetadata, startPilot, confirmPilot } from './lib/api'
+
+const EMPTY_SEMESTERS = () => ({
+  'Fall 2026': [], 'Spring 2027': [], 'Fall 2027': [], 'Spring 2028': []
+})
 
 export default function App() {
   const [mapData, setMapData] = useState(null)
@@ -23,6 +28,7 @@ export default function App() {
   const [courseMetadata, setCourseMetadata] = useState(null)
   const [parseError, setParseError] = useState(null)
   const [seats, setSeats] = useState(5)
+  const [plannerState, setPlannerState] = useState({ bank: [], semesters: EMPTY_SEMESTERS() })
   const pilotLaunched = useRef(false)
 
   useEffect(() => {
@@ -80,6 +86,8 @@ export default function App() {
     try {
       const data = await parseAudit(audit, transcript, addedMinor)
       setMapData(data)
+      const remaining = (data.courses ?? []).filter(c => c.status === 'needed')
+      setPlannerState({ bank: remaining, semesters: EMPTY_SEMESTERS() })
     } catch (err) {
       const msg = err.message?.includes('422')
         ? 'Not a UMBC degree audit. Please upload your audit PDF.'
@@ -118,6 +126,36 @@ export default function App() {
     }
   }, [])
 
+  const handlePlannerDrop = useCallback((courseId, source, target, course) => {
+    setPlannerState(prev => {
+      const next = {
+        bank: [...prev.bank],
+        semesters: Object.fromEntries(
+          Object.entries(prev.semesters).map(([k, v]) => [k, [...v]])
+        ),
+      }
+      if (source === 'bank') next.bank = next.bank.filter(c => c.id !== courseId)
+      else next.semesters[source] = next.semesters[source].filter(c => c.id !== courseId)
+      if (target === 'bank') next.bank.push(course)
+      else next.semesters[target].push(course)
+      return next
+    })
+    setMapData(prev => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        courses: prev.courses.map(c => {
+          if (c.id !== courseId) return c
+          if (target === 'bank') {
+            const { planned_semester, ...rest } = c
+            return rest
+          }
+          return { ...c, planned_semester: target }
+        }),
+      }
+    })
+  }, [])
+
   const handlePilotConfirm = useCallback(async () => {
     if (!sessionId) return
     await confirmPilot(sessionId)
@@ -150,19 +188,24 @@ export default function App() {
         </div>
       )}
 
-      <div className="flex flex-1 overflow-hidden relative">
-        <MapView
-          mapData={mapData}
-          loading={loading}
-          onCourseSelect={setSelectedCourse}
-          selectedId={selectedCourse?.id}
-        />
-        {selectedCourse && (
-          <CourseDrawer
-            course={selectedCourse}
-            metadata={courseMetadata}
-            onClose={() => setSelectedCourse(null)}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex flex-1 overflow-hidden relative min-h-0">
+          <MapView
+            mapData={mapData}
+            loading={loading}
+            onCourseSelect={setSelectedCourse}
+            selectedId={selectedCourse?.id}
           />
+          {selectedCourse && (
+            <CourseDrawer
+              course={selectedCourse}
+              metadata={courseMetadata}
+              onClose={() => setSelectedCourse(null)}
+            />
+          )}
+        </div>
+        {mapData && (
+          <DragPlanner plannerState={plannerState} onDrop={handlePlannerDrop} />
         )}
       </div>
 
