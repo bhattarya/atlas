@@ -25,6 +25,8 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Fraunces', 'ui-serif', 'Georgia', 'serif'],
+        mascot: ['"Bebas Neue"', 'Impact', 'sans-serif'],
       },
       boxShadow: {
         card: '0 1px 4px 0 rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.05)',

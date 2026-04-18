@@ -31,17 +31,19 @@ def validate_placement(
 
     sem_lower = target_semester.lower()
 
+    # Season-only conflicts → soft warning, not a hard error
     if course_code in SPRING_ONLY and 'fall' in sem_lower:
-        errors.append(f'{course_code} is Spring-only — cannot place in {target_semester}')
+        warnings.append(f'{course_code} is typically offered Spring only — confirm a Fall section exists before relying on this slot')
 
     if course_code in FALL_ONLY and 'spring' in sem_lower:
-        errors.append(f'{course_code} is Fall-only — cannot place in {target_semester}')
+        warnings.append(f'{course_code} is typically offered Fall only — confirm a Spring section exists before relying on this slot')
 
     if course.get('spring_only') and 'fall' in sem_lower:
-        msg = f'{course_code} is Spring-only — cannot place in {target_semester}'
-        if msg not in errors:
-            errors.append(msg)
+        msg = f'{course_code} is typically offered Spring only — confirm a Fall section exists before relying on this slot'
+        if msg not in warnings:
+            warnings.append(msg)
 
+    # Prereq issues → soft warning with grade reminder
     target_idx = _semester_index(target_semester)
     for prereq_id in course.get('prereqs', []):
         if prereq_id in completed_courses:
@@ -50,10 +52,11 @@ def validate_placement(
             (sem for sem, codes in current_plan.items() if prereq_id in codes), None
         )
         if placed_in is None:
-            errors.append(f'Prereq {prereq_id} is not completed or planned — place it first')
+            warnings.append(f'You still need to pass {prereq_id} (with C or better) before taking {course_code}')
         elif _semester_index(placed_in) >= target_idx:
-            errors.append(f'Prereq {prereq_id} must come before {target_semester}')
+            warnings.append(f'{prereq_id} is planned for {placed_in} — finish it (C or better) before {course_code} in {target_semester}')
 
+    # Heavy load warning
     placed_codes = current_plan.get(target_semester, [])
     current_credits = sum(
         next((c.get('credits', 3) for c in all_courses if c['id'] == code), 3)
@@ -65,4 +68,5 @@ def validate_placement(
             f'{target_semester} would reach {new_total} credits — heavy load (limit ~19.5)'
         )
 
-    return {'valid': len(errors) == 0, 'errors': errors, 'warnings': warnings}
+    # Always "valid" — placement is allowed; the warnings convey concerns
+    return {'valid': True, 'errors': [], 'warnings': warnings}

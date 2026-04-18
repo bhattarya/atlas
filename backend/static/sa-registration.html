@@ -3,262 +3,476 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UMBC Student Affairs — Registration</title>
+  <title>UMBC myUMBC — Add Classes</title>
   <style>
+    :root {
+      --umbc-gold: #ffc20e;
+      --umbc-black: #000;
+      --bg: #f4f4f1;
+      --panel: #ffffff;
+      --border: #d6d4cc;
+      --muted: #8a8a82;
+      --text: #1a1a1a;
+      --accent-blue: #003366;
+      --green: #2e7d32;
+      --red: #c62828;
+      --amber: #ef6c00;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, Helvetica, sans-serif; font-size: 13px; background: #f0f0f0; color: #333; }
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 13px;
+      background: var(--bg);
+      color: var(--text);
+    }
 
-    /* Header */
-    #header { background: #ffc300; padding: 8px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 3px solid #000; }
-    #header .logo { font-size: 20px; font-weight: bold; color: #000; letter-spacing: -0.5px; }
-    #header .subtitle { font-size: 11px; color: #333; }
+    /* PeopleSoft-style header */
+    .ps-banner { background: linear-gradient(180deg, #000 0%, #1a1a1a 100%); color: #fff; padding: 8px 20px; display: flex; align-items: center; gap: 14px; border-bottom: 4px solid var(--umbc-gold); }
+    .ps-banner .umbc-mark { font-weight: 900; font-size: 22px; color: var(--umbc-gold); letter-spacing: -1px; font-style: italic; }
+    .ps-banner .ps-title { font-size: 13px; font-weight: 600; opacity: 0.9; }
+    .ps-banner .ps-user { margin-left: auto; font-size: 11px; color: #ccc; }
+    .ps-banner .ps-user strong { color: var(--umbc-gold); }
 
-    /* Nav bar */
-    #navbar { background: #000; padding: 6px 16px; display: flex; gap: 20px; }
-    #navbar a { color: #ffc300; text-decoration: none; font-size: 12px; font-weight: bold; }
-    #navbar a:hover { text-decoration: underline; }
+    /* Tab strip */
+    .ps-tabs { background: #2c2c2c; padding: 0 20px; display: flex; gap: 0; border-bottom: 1px solid #1a1a1a; }
+    .ps-tabs a { color: #ccc; text-decoration: none; padding: 10px 18px; font-size: 12px; font-weight: 500; border-right: 1px solid #1a1a1a; }
+    .ps-tabs a.active { background: var(--bg); color: var(--text); font-weight: 700; }
+
+    /* Breadcrumb */
+    .breadcrumb { padding: 10px 24px; background: #ebeae4; font-size: 11px; color: var(--muted); border-bottom: 1px solid var(--border); }
+    .breadcrumb strong { color: var(--text); }
 
     /* Main */
-    #main { max-width: 960px; margin: 16px auto; background: #fff; border: 1px solid #ccc; padding: 16px; }
+    .main { max-width: 1080px; margin: 18px auto; padding: 0 20px; }
 
-    h2 { font-size: 16px; color: #000; border-bottom: 2px solid #ffc300; padding-bottom: 6px; margin-bottom: 12px; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 16px; }
+    .panel-head { background: linear-gradient(180deg, #fafaf6 0%, #ebeae4 100%); padding: 8px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .panel-head h2 { font-size: 13px; font-weight: 700; color: var(--text); }
+    .panel-head .step-pill { background: var(--accent-blue); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.5px; }
+    .panel-body { padding: 14px; }
 
     /* Search */
-    #search-box { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
-    #search-box label { font-weight: bold; }
-    #search-box input { border: 1px solid #999; padding: 4px 8px; font-size: 13px; width: 160px; }
-    #search-box button { background: #000; color: #ffc300; border: none; padding: 5px 14px; font-size: 13px; font-weight: bold; cursor: pointer; }
-    #search-box button:hover { background: #333; }
+    .search-row { display: flex; gap: 8px; align-items: center; }
+    .search-row label { font-weight: 600; font-size: 12px; }
+    .search-row input { border: 1px solid #999; padding: 5px 9px; font-size: 13px; width: 200px; border-radius: 2px; }
+    .search-row input:focus { outline: 2px solid var(--umbc-gold); border-color: var(--umbc-gold); }
+    .btn-search { background: linear-gradient(180deg, #003c7e 0%, #002952 100%); color: #fff; border: 1px solid #001a33; padding: 5px 16px; font-size: 12px; font-weight: 700; cursor: pointer; border-radius: 3px; box-shadow: 0 1px 0 rgba(255,255,255,0.2) inset; }
+    .btn-search:hover { background: linear-gradient(180deg, #00508f 0%, #003366 100%); }
 
-    /* Results table */
-    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-    th { background: #000; color: #ffc300; padding: 6px 8px; text-align: left; font-size: 12px; }
-    td { padding: 5px 8px; border-bottom: 1px solid #e0e0e0; font-size: 12px; }
-    tr:hover td { background: #fffbe6; }
-    .seats-low { color: #c00; font-weight: bold; }
-    .seats-none { color: #999; }
+    .status-msg { color: var(--red); font-size: 12px; margin-top: 6px; min-height: 16px; font-weight: 500; }
 
-    /* Add button */
-    .add-btn { background: #006400; color: #fff; border: none; padding: 3px 10px; font-size: 11px; cursor: pointer; font-weight: bold; border-radius: 3px; }
-    .add-btn:hover { background: #004d00; }
-    .add-btn:disabled { background: #999; cursor: default; }
+    /* Section cards */
+    .section-list { display: flex; flex-direction: column; gap: 8px; }
+    .section-card {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 12px 14px;
+      background: #fefdf9;
+      display: grid;
+      grid-template-columns: 90px 1.4fr 0.9fr 0.9fr 0.6fr 0.7fr auto;
+      gap: 14px;
+      align-items: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .section-card:hover { background: #fffbe6; border-color: var(--umbc-gold); }
+    .section-card.added { background: #eef7ee; border-color: var(--green); }
+    .section-card.closed { opacity: 0.55; background: #f5f5f0; }
+
+    .sec-id { font-weight: 700; font-size: 13px; }
+    .sec-id .nbr { display: block; font-size: 10px; color: var(--muted); font-weight: 500; margin-top: 2px; }
+    .sec-instructor { font-size: 12px; }
+    .sec-meta { font-size: 12px; color: #555; }
+    .sec-seats { font-weight: 700; font-size: 13px; text-align: center; }
+    .sec-seats.low { color: var(--amber); }
+    .sec-seats.empty { color: var(--red); }
+    .sec-seats .label { display: block; font-size: 9px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .seat-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--green); color: #fff;
+      font-size: 11px; font-weight: 700;
+    }
+    .seat-icon.low { background: var(--amber); }
+    .seat-icon.empty { background: var(--muted); }
+
+    .btn-add {
+      background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+      color: #fff; border: 1px solid #1b5e20;
+      padding: 6px 14px; font-size: 12px; font-weight: 700;
+      cursor: pointer; border-radius: 3px;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.2) inset;
+    }
+    .btn-add:hover { background: linear-gradient(180deg, #388e3c 0%, #2e7d32 100%); }
+    .btn-add:disabled { background: #bbb; border-color: #999; cursor: not-allowed; box-shadow: none; }
 
     /* Cart */
-    #cart-section { border: 1px solid #ccc; padding: 12px; background: #f9f9f9; }
-    #cart-section h3 { font-size: 14px; margin-bottom: 8px; }
-    #cart-empty { color: #999; font-style: italic; }
-    #cart-list { list-style: none; }
-    #cart-list li { padding: 4px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+    .cart-body { padding: 0; }
+    .cart-empty { padding: 28px; text-align: center; color: var(--muted); font-style: italic; font-size: 13px; }
+    .cart-table { width: 100%; border-collapse: collapse; }
+    .cart-table thead th {
+      background: #ebeae4; padding: 8px 12px;
+      text-align: left; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      color: #555; border-bottom: 2px solid var(--border);
+    }
+    .cart-table td { padding: 10px 12px; border-bottom: 1px solid #f0efe9; font-size: 12px; }
+    .cart-table tr:last-child td { border-bottom: none; }
+    .cart-row-id { font-weight: 700; }
 
-    /* Submit */
-    #submit-area { margin-top: 14px; text-align: right; }
-    #submit-btn { background: #003366; color: #fff; border: none; padding: 8px 24px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; }
-    #submit-btn:hover { background: #002244; }
-    #submit-btn:disabled { background: #999; cursor: default; }
+    .submit-bar { background: #fafaf6; border-top: 1px solid var(--border); padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; }
+    .submit-bar .summary { font-size: 12px; color: #555; }
+    .submit-bar .summary strong { color: var(--text); }
+    .btn-submit {
+      background: linear-gradient(180deg, var(--umbc-gold) 0%, #e6a800 100%);
+      color: #000; border: 1px solid #b88800;
+      padding: 9px 28px; font-size: 14px; font-weight: 700;
+      cursor: pointer; border-radius: 4px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15), 0 1px 0 rgba(255,255,255,0.4) inset;
+      letter-spacing: 0.5px;
+    }
+    .btn-submit:hover { background: linear-gradient(180deg, #ffd14a 0%, var(--umbc-gold) 100%); }
+    .btn-submit:disabled { background: #ddd; border-color: #bbb; color: #888; cursor: not-allowed; box-shadow: none; }
 
-    #confirm-msg { display: none; color: #006400; font-weight: bold; font-size: 14px; margin-top: 10px; }
+    .confirm-banner {
+      display: none;
+      background: #eef7ee;
+      border-left: 4px solid var(--green);
+      padding: 14px 18px;
+      margin-top: 16px;
+      font-size: 13px;
+      color: #1b5e20;
+      font-weight: 600;
+    }
+    .confirm-banner.show { display: block; animation: slideIn 0.4s ease-out; }
+    .confirm-banner .conf-id { color: #2e7d32; font-family: monospace; font-weight: 700; margin-left: 8px; }
 
-    /* Status */
-    #status-msg { color: #c00; font-size: 12px; margin-top: 4px; min-height: 16px; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse-warn {
+      0%, 100% { background: #fff7ed; }
+      50% { background: #ffedd5; }
+    }
+    .seats-changed { animation: pulse-warn 0.5s ease-out; }
   </style>
 </head>
 <body>
 
-<div id="header">
-  <div class="logo">UMBC</div>
-  <div>
-    <div style="font-weight:bold;font-size:14px;">Student Affairs — Course Registration</div>
-    <div class="subtitle">Spring 2026 &nbsp;|&nbsp; Logged in as: <strong>astudent1@umbc.edu</strong></div>
-  </div>
+<div class="ps-banner">
+  <div class="umbc-mark">UMBC</div>
+  <div class="ps-title">myUMBC · Student Center</div>
+  <div class="ps-user">Term: <strong>Spring 2026</strong> · Logged in: <strong>arya2</strong></div>
 </div>
 
-<div id="navbar">
-  <a href="#">My Schedule</a>
-  <a href="#">Registration</a>
-  <a href="#">Degree Audit</a>
-  <a href="#">Billing</a>
+<div class="ps-tabs">
+  <a href="#">Academic Records</a>
+  <a href="#" class="active">Enrollment</a>
+  <a href="#">Financials</a>
+  <a href="#">Personal Info</a>
   <a href="#">Logout</a>
 </div>
 
-<div id="main">
-  <h2>Add / Drop Courses</h2>
+<div class="breadcrumb">
+  Student Center &nbsp;›&nbsp; Enrollment &nbsp;›&nbsp; <strong>Add Classes</strong>
+</div>
 
-  <div id="search-box">
-    <label for="course-input">Course ID:</label>
-    <input type="text" id="course-input" placeholder="e.g. CMSC 441" />
-    <button onclick="searchCourse()">Search</button>
-  </div>
-  <div id="status-msg"></div>
+<div class="main">
 
-  <div id="results-area" style="display:none;">
-    <h2 id="results-title">Search Results</h2>
-    <table id="results-table">
-      <thead>
-        <tr>
-          <th>Course</th>
-          <th>Title</th>
-          <th>Sec</th>
-          <th>Instructor</th>
-          <th>Days</th>
-          <th>Time</th>
-          <th>Room</th>
-          <th>Credits</th>
-          <th>Open</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="results-body"></tbody>
-    </table>
-  </div>
-
-  <div id="cart-section">
-    <h3>Registration Cart</h3>
-    <div id="cart-empty">No courses added yet.</div>
-    <ul id="cart-list" style="display:none;"></ul>
-    <div id="submit-area">
-      <button id="submit-btn" disabled onclick="submitRegistration()">Submit Registration</button>
+  <div class="panel">
+    <div class="panel-head">
+      <h2>1. Search by Course Subject</h2>
+      <span class="step-pill">STEP 1 of 3</span>
     </div>
-    <div id="confirm-msg">Registration submitted successfully!</div>
+    <div class="panel-body">
+      <div class="search-row">
+        <label for="course-input">Course ID:</label>
+        <input type="text" id="course-input" placeholder="e.g. CMSC 441" autocomplete="off" />
+        <button class="btn-search" onclick="searchCourse()">Search</button>
+      </div>
+      <div class="status-msg" id="status-msg"></div>
+    </div>
   </div>
+
+  <div class="panel" id="results-panel" style="display:none;">
+    <div class="panel-head">
+      <h2 id="results-title">Sections Available</h2>
+      <span class="step-pill">STEP 2 of 3</span>
+    </div>
+    <div class="panel-body">
+      <div class="section-list" id="section-list"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Shopping Cart</h2>
+      <span class="step-pill">STEP 3 of 3</span>
+    </div>
+    <div class="cart-body">
+      <div class="cart-empty" id="cart-empty">Your shopping cart is empty.</div>
+      <table class="cart-table" id="cart-table" style="display:none;">
+        <thead>
+          <tr>
+            <th>Class</th>
+            <th>Description</th>
+            <th>Days/Times</th>
+            <th>Instructor</th>
+            <th>Units</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="cart-body"></tbody>
+      </table>
+      <div class="submit-bar">
+        <div class="summary" id="cart-summary">0 classes · 0 units</div>
+        <button class="btn-submit" id="submit-btn" disabled onclick="submitRegistration()">Finish Enrolling</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="confirm-banner" id="confirm-banner">
+    ✓ Enrollment confirmed.
+    <span class="conf-id" id="conf-id"></span>
+  </div>
+
 </div>
 
 <script>
 const COURSES = {
+  "CMSC 426": {
+    name: "Princ Computer Security",
+    credits: 3,
+    sections: [
+      { sec: "1-LEC", nbr: "2622", instructor: "Enis Golaszewski", days: "TuTh", time: "2:30pm-3:45pm", room: "ITE 233", open: 4, total: 35 }
+    ]
+  },
   "CMSC 441": {
     name: "Design & Analysis of Algorithms",
     credits: 3,
     sections: [
-      { sec: "01", instructor: "desJardins, M.", days: "MWF", time: "9:00-9:50am", room: "ITE 239", open: 0 },
-      { sec: "02", instructor: "Chang, R.", days: "TuTh", time: "11:30am-12:45pm", room: "ITE 227", open: 5 }
+      { sec: "100-LEC", nbr: "1579", instructor: "Paul Burkhardt", days: "TuTh", time: "5:30pm-6:45pm", room: "ITE 227", open: 6, total: 35 },
+      { sec: "200-LEC", nbr: "1580", instructor: "Richard Chang", days: "MWF", time: "10:00am-10:50am", room: "ITE 229", open: 2, total: 35 },
+      { sec: "300-LEC", nbr: "1581", instructor: "Marie desJardins", days: "TuTh", time: "9:00am-10:15am", room: "ITE 240", open: 0, total: 35 }
+    ]
+  },
+  "CMSC 461": {
+    name: "Database Mgmt Systems",
+    credits: 3,
+    sections: [
+      { sec: "02-LEC", nbr: "1444", instructor: "Konstantin Kalpakis", days: "TuTh", time: "1:00pm-2:15pm", room: "ITE 102", open: 8, total: 40 }
+    ]
+  },
+  "CMSC 481": {
+    name: "Computer Networks",
+    credits: 3,
+    sections: [
+      { sec: "01-LEC", nbr: "2444", instructor: "Ram Rustagi", days: "MoWe", time: "8:30am-9:45am", room: "ITE 237", open: 5, total: 30 },
+      { sec: "02-LEC", nbr: "2445", instructor: "Enis Golaszewski", days: "MoWe", time: "4:00pm-5:15pm", room: "ITE 233", open: 9, total: 30 }
     ]
   },
   "CMSC 447": {
     name: "Software Engineering I",
     credits: 3,
     sections: [
-      { sec: "01", instructor: "Squire, M.", days: "MWF", time: "10:00-10:50am", room: "ITE 101", open: 12 }
+      { sec: "01-LEC", nbr: "1620", instructor: "Megan Squire", days: "MWF", time: "10:00am-10:50am", room: "ITE 101", open: 12, total: 40 }
     ]
   },
   "CMSC 471": {
     name: "Intro to Artificial Intelligence",
     credits: 3,
     sections: [
-      { sec: "01", instructor: "Oates, T.", days: "MWF", time: "1:00-1:50pm", room: "ITE 104", open: 8 }
+      { sec: "01-LEC", nbr: "1700", instructor: "Tim Oates", days: "MWF", time: "1:00pm-1:50pm", room: "ITE 104", open: 8, total: 35 }
     ]
   },
-  "CMSC 411": {
-    name: "Computer Architecture",
-    credits: 3,
+  "MATH 221": {
+    name: "Introduction to Linear Algebra",
+    credits: 4,
     sections: [
-      { sec: "01", instructor: "Bourgeois, A.", days: "TuTh", time: "2:30-3:45pm", room: "ITE 239", open: 3 }
+      { sec: "01-LEC", nbr: "3101", instructor: "Bradford Peercy", days: "MWF", time: "9:00am-9:50am", room: "MP 105", open: 7, total: 35 },
+      { sec: "02-LEC", nbr: "3102", instructor: "Bedřich Sousedík", days: "TuTh", time: "11:30am-12:45pm", room: "MP 103", open: 12, total: 35 },
+      { sec: "03-LEC", nbr: "3103", instructor: "Rouben Rostamian", days: "MWF", time: "2:00pm-2:50pm", room: "MP 101", open: 3, total: 30 }
     ]
   },
-  "CMSC 461": {
-    name: "Database Management Systems",
+  "ECON 374": {
+    name: "Introduction to Econometrics",
     credits: 3,
     sections: [
-      { sec: "01", instructor: "Nicholas, C.", days: "TuTh", time: "10:00-11:15am", room: "ITE 102", open: 15 }
+      { sec: "01-LEC", nbr: "4410", instructor: "Timothy Gindling", days: "TuTh", time: "10:00am-11:15am", room: "PUP 206", open: 9, total: 30 },
+      { sec: "02-LEC", nbr: "4411", instructor: "Susan Martin", days: "MoWe", time: "3:00pm-4:15pm", room: "PUP 207", open: 4, total: 30 }
+    ]
+  },
+  "ECON 410": {
+    name: "Intermediate Macroeconomics",
+    credits: 3,
+    sections: [
+      { sec: "01-LEC", nbr: "4510", instructor: "David Mitch", days: "MoWe", time: "1:00pm-2:15pm", room: "PUP 208", open: 6, total: 35 }
+    ]
+  },
+  "STAT 355": {
+    name: "Intro to Probability & Statistics",
+    credits: 4,
+    sections: [
+      { sec: "01-LEC", nbr: "5101", instructor: "Anindya Roy", days: "TuTh", time: "2:30pm-3:45pm", room: "MP 401", open: 8, total: 40 },
+      { sec: "02-LEC", nbr: "5102", instructor: "Yaakov Malinovsky", days: "MWF", time: "11:00am-11:50am", room: "MP 403", open: 5, total: 40 }
     ]
   }
 };
 
 const cart = [];
+let currentSearch = null;
+
+function selectorId(id, sec) {
+  return 'add-' + id.replace(/\s/g, '-') + '-' + sec.replace(/[^a-zA-Z0-9]/g, '');
+}
 
 function searchCourse() {
   const input = document.getElementById('course-input').value.trim().toUpperCase();
-  const statusEl = document.getElementById('status-msg');
-  const resultsArea = document.getElementById('results-area');
-  const tbody = document.getElementById('results-body');
-  const titleEl = document.getElementById('results-title');
+  const status = document.getElementById('status-msg');
+  const panel = document.getElementById('results-panel');
+  const list = document.getElementById('section-list');
+  const title = document.getElementById('results-title');
 
-  if (!input) { statusEl.textContent = 'Please enter a course ID.'; return; }
-
+  if (!input) { status.textContent = 'Enter a course ID.'; return; }
   const course = COURSES[input];
   if (!course) {
-    statusEl.textContent = `No results found for "${input}".`;
-    resultsArea.style.display = 'none';
+    status.textContent = 'No results found for "' + input + '".';
+    panel.style.display = 'none';
     return;
   }
-
-  statusEl.textContent = '';
-  titleEl.textContent = `Results for: ${input}`;
-  tbody.innerHTML = '';
+  status.textContent = '';
+  currentSearch = input;
+  title.textContent = input + ' — ' + course.name + ' (' + course.credits + ' Units)';
+  list.innerHTML = '';
 
   course.sections.forEach(sec => {
-    const alreadyAdded = cart.some(c => c.id === input && c.sec === sec.sec);
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${input}</strong></td>
-      <td>${course.name}</td>
-      <td>${sec.sec}</td>
-      <td>${sec.instructor}</td>
-      <td>${sec.days}</td>
-      <td>${sec.time}</td>
-      <td>${sec.room}</td>
-      <td>${course.credits}</td>
-      <td class="${sec.open === 0 ? 'seats-none' : sec.open <= 3 ? 'seats-low' : ''}">${sec.open === 0 ? 'CLOSED' : sec.open}</td>
-      <td>
-        <button class="add-btn" id="add-${input.replace(' ','-')}-${sec.sec}"
+    const added = cart.some(c => c.id === input && c.sec === sec.sec);
+    const closed = sec.open === 0;
+    const low = !closed && sec.open <= 3;
+    const seatClass = closed ? 'empty' : low ? 'low' : '';
+    const card = document.createElement('div');
+    card.className = 'section-card' + (added ? ' added' : '') + (closed ? ' closed' : '');
+    card.dataset.id = input;
+    card.dataset.sec = sec.sec;
+    card.innerHTML = `
+      <div class="sec-id">${sec.sec}<span class="nbr">#${sec.nbr}</span></div>
+      <div class="sec-instructor">${sec.instructor}</div>
+      <div class="sec-meta"><strong>${sec.days}</strong> ${sec.time}</div>
+      <div class="sec-meta">${sec.room}</div>
+      <div class="sec-meta">${course.credits} units</div>
+      <div class="sec-seats ${seatClass}" id="seats-${selectorId(input, sec.sec)}">
+        ${closed ? 'CLOSED' : sec.open}<span class="label">${closed ? 'wait-list' : 'seats open'}</span>
+      </div>
+      <div>
+        <button class="btn-add" id="${selectorId(input, sec.sec)}"
           onclick="addCourse('${input}','${sec.sec}')"
-          ${sec.open === 0 || alreadyAdded ? 'disabled' : ''}>
-          ${alreadyAdded ? 'Added' : 'Add'}
+          ${closed || added ? 'disabled' : ''}>
+          ${added ? '✓ Added' : 'Add'}
         </button>
-      </td>
-    `;
-    tbody.appendChild(tr);
+      </div>`;
+    list.appendChild(card);
   });
 
-  resultsArea.style.display = 'block';
+  panel.style.display = 'block';
 }
 
 function addCourse(id, sec) {
   const course = COURSES[id];
   const section = course.sections.find(s => s.sec === sec);
-  cart.push({ id, sec, name: course.name, time: section.time, days: section.days, credits: course.credits });
-
-  const btn = document.getElementById(`add-${id.replace(' ','-')}-${sec}`);
-  if (btn) { btn.disabled = true; btn.textContent = 'Added'; }
-
+  if (!section || section.open === 0) return;
+  if (cart.some(c => c.id === id && c.sec === sec)) return;
+  cart.push({ id, sec, name: course.name, instructor: section.instructor, time: section.time, days: section.days, credits: course.credits, nbr: section.nbr });
+  section.open = Math.max(0, section.open - 1);
+  // Update button + seats inline
+  const btn = document.getElementById(selectorId(id, sec));
+  if (btn) { btn.disabled = true; btn.textContent = '✓ Added'; }
+  const card = btn?.closest('.section-card');
+  if (card) card.classList.add('added');
   renderCart();
 }
 
 function renderCart() {
-  const cartEmpty = document.getElementById('cart-empty');
-  const cartList = document.getElementById('cart-list');
-  const submitBtn = document.getElementById('submit-btn');
-
+  const empty = document.getElementById('cart-empty');
+  const table = document.getElementById('cart-table');
+  const tbody = document.getElementById('cart-body');
+  const submit = document.getElementById('submit-btn');
+  const summary = document.getElementById('cart-summary');
   if (cart.length === 0) {
-    cartEmpty.style.display = '';
-    cartList.style.display = 'none';
-    submitBtn.disabled = true;
+    empty.style.display = '';
+    table.style.display = 'none';
+    submit.disabled = true;
+    summary.textContent = '0 classes · 0 units';
     return;
   }
-
-  cartEmpty.style.display = 'none';
-  cartList.style.display = '';
-  cartList.innerHTML = '';
-
+  empty.style.display = 'none';
+  table.style.display = '';
+  tbody.innerHTML = '';
+  let totalCr = 0;
   cart.forEach(c => {
-    const li = document.createElement('li');
-    li.innerHTML = `<span><strong>${c.id}</strong> Sec ${c.sec} — ${c.name}</span><span>${c.days} ${c.time} &nbsp; ${c.credits} cr</span>`;
-    cartList.appendChild(li);
+    totalCr += c.credits;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="cart-row-id">${c.id}</span> · ${c.sec}<br><span style="color:#999;font-size:10px;">#${c.nbr}</span></td>
+      <td>${c.name}</td>
+      <td>${c.days} ${c.time}</td>
+      <td>${c.instructor}</td>
+      <td>${c.credits}</td>
+      <td><span style="color:#ef6c00;font-weight:600;">⏵ Pending</span></td>`;
+    tbody.appendChild(tr);
   });
-
-  submitBtn.disabled = false;
+  summary.innerHTML = '<strong>' + cart.length + '</strong> class' + (cart.length === 1 ? '' : 'es') + ' · <strong>' + totalCr + '</strong> units';
+  submit.disabled = false;
 }
 
 function submitRegistration() {
-  document.getElementById('submit-btn').disabled = true;
-  document.getElementById('submit-btn').textContent = 'Processing…';
+  const submit = document.getElementById('submit-btn');
+  submit.disabled = true;
+  submit.textContent = 'Processing…';
   setTimeout(() => {
-    document.getElementById('submit-btn').style.display = 'none';
-    document.getElementById('confirm-msg').style.display = 'block';
-  }, 800);
+    const banner = document.getElementById('confirm-banner');
+    const confId = document.getElementById('conf-id');
+    confId.textContent = 'Confirmation #UMBC-' + Math.floor(Math.random()*9000+1000) + '-' + Date.now().toString().slice(-6);
+    banner.classList.add('show');
+    submit.textContent = '✓ Enrolled';
+    // Mark all cart rows confirmed
+    document.querySelectorAll('#cart-body tr td:last-child').forEach(td => {
+      td.innerHTML = '<span style="color:#2e7d32;font-weight:600;">✓ Enrolled</span>';
+    });
+  }, 700);
 }
 
-document.getElementById('course-input').addEventListener('keydown', function(e) {
+document.getElementById('course-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') searchCourse();
 });
+
+/* ── Live seat decrement (race the clock) ──
+   Random sections lose seats every 4-7s while the page is open,
+   simulating other students grabbing them in real time. */
+function dramaticSeatTick() {
+  const allCourses = Object.entries(COURSES);
+  const [id, course] = allCourses[Math.floor(Math.random() * allCourses.length)];
+  const openSecs = course.sections.filter(s => s.open > 0);
+  if (openSecs.length === 0) return;
+  const sec = openSecs[Math.floor(Math.random() * openSecs.length)];
+  sec.open = Math.max(0, sec.open - 1);
+  // Update DOM if currently visible
+  if (currentSearch === id) {
+    const seatsEl = document.getElementById('seats-' + selectorId(id, sec.sec));
+    if (seatsEl) {
+      const closed = sec.open === 0;
+      const low = !closed && sec.open <= 3;
+      seatsEl.className = 'sec-seats ' + (closed ? 'empty' : low ? 'low' : '') + ' seats-changed';
+      seatsEl.innerHTML = (closed ? 'CLOSED' : sec.open) + '<span class="label">' + (closed ? 'wait-list' : 'seats open') + '</span>';
+      setTimeout(() => seatsEl.classList.remove('seats-changed'), 600);
+      if (closed) {
+        const btn = document.getElementById(selectorId(id, sec.sec));
+        if (btn && !btn.textContent.includes('Added')) { btn.disabled = true; btn.textContent = 'Closed'; }
+      }
+    }
+  }
+}
+setInterval(dramaticSeatTick, 4500);
 </script>
 </body>
 </html>
