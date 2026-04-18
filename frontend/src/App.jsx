@@ -73,21 +73,32 @@ export default function App() {
   }, [sessionId])
 
   return (
-    <div className="flex flex-col h-screen bg-[#0a0e1a] text-[#e5e7eb] overflow-hidden">
+    <div className="flex flex-col h-screen bg-[#f7f6f1] text-[#111111] overflow-hidden">
+      {/* UMBC black topbar */}
       <TopBar onUpload={handleAuditUpload} loading={loading} mapData={mapData} />
+
+      {/* Gold countdown strip */}
       <CountdownBanner />
-      <StatsBar mapData={mapData} />
-      <MinorToggle selected={addedMinor} onChange={handleMinorChange} />
+
+      {/* Subbar: stats + minor toggle */}
+      <div className="flex items-center justify-between px-5 border-b border-[#e8e7e0] bg-white min-h-[36px]">
+        <StatsBar mapData={mapData} />
+        <MinorToggle selected={addedMinor} onChange={handleMinorChange} />
+      </div>
+
       {parseError && (
-        <div className="mx-6 mt-3 px-4 py-2 rounded-lg bg-[#450a0a] border border-[#ef4444] text-[#fca5a5] text-sm">
+        <div className="mx-5 mt-3 px-4 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
           {parseError}
         </div>
       )}
+
+      {/* Main canvas + drawer */}
       <div className="flex flex-1 overflow-hidden relative">
         <MapView
           mapData={mapData}
           loading={loading}
           onCourseSelect={setSelectedCourse}
+          selectedId={selectedCourse?.id}
         />
         {selectedCourse && (
           <CourseDrawer
@@ -97,7 +108,11 @@ export default function App() {
           />
         )}
       </div>
+
+      {/* Pilot bar */}
       <PilotBar mapData={mapData} onLaunch={handlePilotStart} />
+
+      {/* Pilot overlay */}
       {pilotActive && (
         <PilotPanel
           sessionId={sessionId}
