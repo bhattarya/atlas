@@ -1,101 +1,167 @@
 [
   {
-    "course_code": "CMSC 441",
-    "instructor": "Richard Chang",
-    "semester": "Spring 2024",
-    "distribution": {"A": 28, "B": 35, "C": 20, "D": 9, "F": 5, "W": 3},
-    "c_or_below_pct": 37,
-    "withdraw_rate": 3,
-    "source": "PlanetTerp"
+    "course_code": "CMSC 426",
+    "instructor": "Enis Golaszewski",
+    "semesters_aggregated": "All Semesters",
+    "students_total": 40,
+    "distribution_pct": {"A": 42.5, "B": 32.5, "C": 20.0, "D": 0.0, "F": 5.0, "O": 0.0},
+    "course_eval_overall": 4.55,
+    "responses": 7,
+    "invited": 40,
+    "source": "GritView"
   },
   {
     "course_code": "CMSC 441",
+    "instructor": "Paul Burkhardt",
+    "semesters_aggregated": "All Semesters (All Courses)",
+    "students_total": 411,
+    "distribution_pct": {"A": 36.74, "B": 47.45, "C": 11.44, "D": 0.0, "F": 1.21, "O": 3.16},
+    "course_eval_overall": 4.51,
+    "responses": 158,
+    "invited": 557,
+    "source": "GritView"
+  },
+  {
+    "course_code": "CMSC 461",
+    "instructor": "Konstantin Kalpakis",
+    "semesters_aggregated": "All Semesters (All Courses)",
+    "students_total": 1153,
+    "distribution_pct": {"A": 43.97, "B": 39.90, "C": 8.85, "D": 0.0, "F": 2.95, "O": 4.25},
+    "course_eval_overall": 4.49,
+    "responses": 397,
+    "invited": 1140,
+    "source": "GritView"
+  },
+  {
+    "course_code": "CMSC 481",
+    "instructor": "Ram Rustagi",
+    "semesters_aggregated": "All Semesters (All Courses)",
+    "students_total": 335,
+    "distribution_pct": {"A": 40.00, "B": 34.93, "C": 12.54, "D": 3.28, "F": 3.58, "O": 5.67},
+    "course_eval_overall": 4.10,
+    "responses": 83,
+    "invited": 340,
+    "source": "GritView"
+  },
+  {
+    "course_code": "CMSC 441",
     "instructor": "Richard Chang",
-    "semester": "Spring 2023",
-    "distribution": {"A": 25, "B": 33, "C": 23, "D": 10, "F": 6, "W": 3},
-    "c_or_below_pct": 42,
-    "withdraw_rate": 3,
-    "source": "PlanetTerp"
+    "semesters_aggregated": "All Semesters (All Courses)",
+    "students_total": 489,
+    "distribution_pct": {"A": 30.5, "B": 38.2, "C": 19.8, "D": 6.1, "F": 3.2, "O": 2.2},
+    "course_eval_overall": 3.92,
+    "responses": 142,
+    "invited": 510,
+    "source": "GritView"
+  },
+  {
+    "course_code": "CMSC 441",
+    "instructor": "Marie desJardins",
+    "semesters_aggregated": "All Semesters (All Courses)",
+    "students_total": 612,
+    "distribution_pct": {"A": 41.2, "B": 41.0, "C": 12.5, "D": 2.1, "F": 1.0, "O": 2.2},
+    "course_eval_overall": 4.62,
+    "responses": 211,
+    "invited": 690,
+    "source": "GritView"
   },
   {
     "course_code": "CMSC 421",
-    "instructor": "Konstantinos Kalpakis",
-    "semester": "Fall 2024",
-    "distribution": {"A": 12, "B": 26, "C": 29, "D": 18, "F": 9, "W": 6},
-    "c_or_below_pct": 62,
-    "withdraw_rate": 6,
-    "source": "PlanetTerp"
-  },
-  {
-    "course_code": "CMSC 421",
-    "instructor": "Konstantinos Kalpakis",
-    "semester": "Fall 2023",
-    "distribution": {"A": 14, "B": 24, "C": 28, "D": 19, "F": 10, "W": 5},
-    "c_or_below_pct": 62,
-    "withdraw_rate": 5,
-    "source": "PlanetTerp"
-  },
-  {
-    "course_code": "CMSC 421",
-    "instructor": "Konstantinos Kalpakis",
-    "semester": "Fall 2022",
-    "distribution": {"A": 11, "B": 27, "C": 30, "D": 17, "F": 10, "W": 5},
-    "c_or_below_pct": 62,
-    "withdraw_rate": 5,
-    "source": "PlanetTerp"
+    "instructor": "Konstantin Kalpakis",
+    "semesters_aggregated": "All Semesters",
+    "students_total": 412,
+    "distribution_pct": {"A": 41.5, "B": 40.0, "C": 10.5, "D": 1.5, "F": 3.0, "O": 3.5},
+    "course_eval_overall": 4.42,
+    "responses": 120,
+    "invited": 412,
+    "source": "GritView"
   },
   {
     "course_code": "CMSC 341",
     "instructor": "Penny Rheingans",
-    "semester": "Fall 2024",
-    "distribution": {"A": 32, "B": 38, "C": 17, "D": 7, "F": 4, "W": 2},
-    "c_or_below_pct": 30,
-    "withdraw_rate": 2,
-    "source": "PlanetTerp"
+    "semesters_aggregated": "All Semesters",
+    "students_total": 388,
+    "distribution_pct": {"A": 32.0, "B": 38.0, "C": 18.0, "D": 7.0, "F": 3.0, "O": 2.0},
+    "course_eval_overall": 4.50,
+    "responses": 134,
+    "invited": 388,
+    "source": "GritView"
+  },
+  {
+    "course_code": "CMSC 447",
+    "instructor": "Megan Squire",
+    "semesters_aggregated": "All Semesters",
+    "students_total": 184,
+    "distribution_pct": {"A": 39.5, "B": 37.0, "C": 14.5, "D": 5.0, "F": 3.0, "O": 1.0},
+    "course_eval_overall": 3.81,
+    "responses": 67,
+    "invited": 184,
+    "source": "GritView"
+  },
+  {
+    "course_code": "CMSC 471",
+    "instructor": "Tim Oates",
+    "semesters_aggregated": "All Semesters",
+    "students_total": 540,
+    "distribution_pct": {"A": 44.0, "B": 38.0, "C": 11.0, "D": 3.0, "F": 2.0, "O": 2.0},
+    "course_eval_overall": 4.60,
+    "responses": 203,
+    "invited": 540,
+    "source": "GritView"
+  },
+  {
+    "course_code": "CMSC 202",
+    "instructor": "Jeremy Dixon",
+    "semesters_aggregated": "All Semesters (Spring 2025, Fall 2024, Spring 2024, Fall 2023)",
+    "students_total": 3549,
+    "distribution_pct": {"A": 25.16, "B": 33.50, "C": 16.26, "D": 5.89, "F": 8.37, "O": 10.82},
+    "course_eval_overall": 4.59,
+    "responses": 1178,
+    "invited": 3242,
+    "source": "GritView"
+  },
+  {
+    "course_code": "CMSC 304",
+    "instructor": "Maya Larson",
+    "semesters_aggregated": "All Semesters (Spring 2025, Spring 2024, Fall 2023, Spring 2023)",
+    "students_total": 281,
+    "distribution_pct": {"A": 66.55, "B": 18.51, "C": 6.41, "D": 2.85, "F": 2.12, "O": 3.56},
+    "course_eval_overall": 4.48,
+    "responses": 123,
+    "invited": 313,
+    "source": "GritView"
+  },
+  {
+    "course_code": "CMSC 313",
+    "instructor": "RJ Joyce",
+    "semesters_aggregated": "All Semesters (All Courses)",
+    "students_total": 683,
+    "distribution_pct": {"A": 61.93, "B": 21.82, "C": 9.96, "D": 1.46, "F": 2.05, "O": 2.78},
+    "course_eval_overall": 4.92,
+    "responses": 274,
+    "invited": 683,
+    "source": "GritView"
+  },
+  {
+    "course_code": "CMSC 201",
+    "instructor": "Samit Shivadekar",
+    "semesters_aggregated": "All Semesters (All Courses)",
+    "students_total": 919,
+    "distribution_pct": {"A": 49.29, "B": 22.74, "C": 10.45, "D": 4.03, "F": 9.14, "O": 4.35},
+    "course_eval_overall": 3.89,
+    "responses": 459,
+    "invited": 947,
+    "source": "GritView"
   },
   {
     "course_code": "CMSC 341",
-    "instructor": "Penny Rheingans",
-    "semester": "Fall 2023",
-    "distribution": {"A": 29, "B": 40, "C": 19, "D": 7, "F": 3, "W": 2},
-    "c_or_below_pct": 31,
-    "withdraw_rate": 2,
-    "source": "PlanetTerp"
-  },
-  {
-    "course_code": "CMSC 447",
-    "instructor": "Megan Squire",
-    "semester": "Fall 2024",
-    "distribution": {"A": 41, "B": 36, "C": 14, "D": 5, "F": 3, "W": 1},
-    "c_or_below_pct": 23,
-    "withdraw_rate": 1,
-    "source": "PlanetTerp"
-  },
-  {
-    "course_code": "CMSC 447",
-    "instructor": "Megan Squire",
-    "semester": "Fall 2023",
-    "distribution": {"A": 38, "B": 38, "C": 15, "D": 5, "F": 3, "W": 1},
-    "c_or_below_pct": 24,
-    "withdraw_rate": 1,
-    "source": "PlanetTerp"
-  },
-  {
-    "course_code": "CMSC 471",
-    "instructor": "Tim Oates",
-    "semester": "Spring 2024",
-    "distribution": {"A": 45, "B": 37, "C": 11, "D": 4, "F": 2, "W": 1},
-    "c_or_below_pct": 18,
-    "withdraw_rate": 1,
-    "source": "PlanetTerp"
-  },
-  {
-    "course_code": "CMSC 471",
-    "instructor": "Tim Oates",
-    "semester": "Fall 2023",
-    "distribution": {"A": 43, "B": 38, "C": 12, "D": 4, "F": 2, "W": 1},
-    "c_or_below_pct": 19,
-    "withdraw_rate": 1,
-    "source": "PlanetTerp"
+    "instructor": "Kash Donyaee",
+    "semesters_aggregated": "All Semesters",
+    "students_total": 686,
+    "distribution_pct": {"A": 19.68, "B": 36.44, "C": 23.62, "D": 7.29, "F": 6.56, "O": 6.41},
+    "course_eval_overall": 4.62,
+    "responses": 218,
+    "invited": 651,
+    "source": "GritView"
   }
 ]

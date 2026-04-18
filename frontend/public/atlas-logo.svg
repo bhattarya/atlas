@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <!-- Gold circular halo -->
+  <defs>
+    <radialGradient id="halo" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#FFD84D" />
+      <stop offset="65%" stop-color="#FFC300" />
+      <stop offset="100%" stop-color="#E6A700" />
+    </radialGradient>
+    <linearGradient id="cap" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#111" />
+      <stop offset="100%" stop-color="#000" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer ring -->
+  <circle cx="128" cy="128" r="120" fill="url(#halo)" />
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#000" stroke-width="6" opacity="0.9" />
+
+  <!-- Retriever head (stylized silhouette) -->
+  <g fill="#111" stroke="#000" stroke-linejoin="round" stroke-linecap="round" stroke-width="4">
+    <!-- Left ear -->
+    <path d="M72 108 C 60 130, 62 160, 82 172 L 96 150 Z" />
+    <!-- Right ear -->
+    <path d="M184 108 C 196 130, 194 160, 174 172 L 160 150 Z" />
+    <!-- Head / muzzle -->
+    <path d="M92 112
+             C 92 86, 118 74, 128 74
+             C 138 74, 164 86, 164 112
+             L 164 150
+             C 164 168, 148 184, 128 184
+             C 108 184, 92 168, 92 150 Z" />
+  </g>
+
+  <!-- Snout (lighter caramel) -->
+  <path d="M110 154
+           C 110 148, 118 142, 128 142
+           C 138 142, 146 148, 146 154
+           C 146 164, 138 172, 128 172
+           C 118 172, 110 164, 110 154 Z"
+        fill="#E09A2B" stroke="#000" stroke-width="3" />
+
+  <!-- Nose -->
+  <ellipse cx="128" cy="150" rx="7" ry="5" fill="#000" />
+
+  <!-- Mouth -->
+  <path d="M128 158 L 128 166 M120 166 Q 128 172 136 166"
+        stroke="#000" stroke-width="3" fill="none" stroke-linecap="round" />
+
+  <!-- Eyes -->
+  <circle cx="112" cy="126" r="5" fill="#FFC300" />
+  <circle cx="144" cy="126" r="5" fill="#FFC300" />
+  <circle cx="112" cy="126" r="2.4" fill="#000" />
+  <circle cx="144" cy="126" r="2.4" fill="#000" />
+
+  <!-- Graduation cap -->
+  <g>
+    <!-- Cap base (flat mortar board) -->
+    <polygon points="70,76 128,56 186,76 128,96" fill="url(#cap)" stroke="#000" stroke-width="3" stroke-linejoin="round" />
+    <!-- Cap band -->
+    <path d="M92 80 L 92 96 C 92 102, 110 108, 128 108 C 146 108, 164 102, 164 96 L 164 80"
+          fill="#111" stroke="#000" stroke-width="3" />
+    <!-- Tassel cord -->
+    <path d="M128 68 C 160 72, 176 80, 176 100 L 176 118"
+          stroke="#FFC300" stroke-width="3" fill="none" stroke-linecap="round" />
+    <!-- Tassel -->
+    <circle cx="176" cy="122" r="6" fill="#FFC300" stroke="#000" stroke-width="2.4" />
+    <path d="M172 124 L 170 134 M176 126 L 176 136 M180 124 L 182 134"
+          stroke="#FFC300" stroke-width="2" stroke-linecap="round" />
+    <!-- Button on top -->
+    <circle cx="128" cy="72" r="4" fill="#FFC300" stroke="#000" stroke-width="2" />
+  </g>
+</svg>
