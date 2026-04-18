@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import TopBar from './components/TopBar'
 import StatsBar from './components/StatsBar'
 import MapView from './components/MapView'
@@ -7,6 +7,7 @@ import PilotBar from './components/PilotBar'
 import PilotPanel from './components/PilotPanel'
 import CountdownBanner from './components/CountdownBanner'
 import MinorToggle from './components/MinorToggle'
+import { parseAudit, parseCached, fetchCourseMetadata, startPilot, confirmPilot } from './lib/api'
 
 export default function App() {
   const [mapData, setMapData] = useState(null)
@@ -15,16 +16,22 @@ export default function App() {
   const [pilotActive, setPilotActive] = useState(false)
   const [sessionId, setSessionId] = useState(null)
   const [addedMinor, setAddedMinor] = useState(null)
+  const [auditFile, setAuditFile] = useState(null)
+  const [transcriptFile, setTranscriptFile] = useState(null)
+  const [courseMetadata, setCourseMetadata] = useState(null)
 
-  const handleAuditUpload = useCallback(async (auditFile, transcriptFile) => {
+  useEffect(() => {
+    fetchCourseMetadata()
+      .then(setCourseMetadata)
+      .catch(err => console.warn('Metadata fetch failed (backend may not be running):', err))
+  }, [])
+
+  const handleAuditUpload = useCallback(async (audit, transcript) => {
+    setAuditFile(audit)
+    setTranscriptFile(transcript)
     setLoading(true)
     try {
-      const form = new FormData()
-      form.append('audit', auditFile)
-      if (transcriptFile) form.append('transcript', transcriptFile)
-      if (addedMinor) form.append('added_minor', addedMinor)
-      const res = await fetch('/api/parse', { method: 'POST', body: form })
-      const data = await res.json()
+      const data = await parseAudit(audit, transcript, addedMinor)
       setMapData(data)
     } catch (err) {
       console.error('Parse failed:', err)
@@ -36,33 +43,29 @@ export default function App() {
   const handleMinorChange = useCallback(async (minor) => {
     setAddedMinor(minor)
     if (!mapData) return
-    // Re-parse with new minor using cached audit endpoint
     setLoading(true)
     try {
-      const res = await fetch('/api/parse-cached', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ added_minor: minor }),
-      })
-      const data = await res.json()
+      // Re-run full parse with minor context if we have the file, else use cached
+      const data = auditFile
+        ? await parseAudit(auditFile, transcriptFile, minor)
+        : await parseCached(minor)
       setMapData(data)
     } catch (err) {
       console.error('Minor toggle failed:', err)
     } finally {
       setLoading(false)
     }
-  }, [mapData])
+  }, [mapData, auditFile, transcriptFile])
 
   const handlePilotStart = useCallback(async () => {
-    const res = await fetch('/api/pilot-register', { method: 'POST' })
-    const { session_id } = await res.json()
+    const { session_id } = await startPilot()
     setSessionId(session_id)
     setPilotActive(true)
   }, [])
 
   const handlePilotConfirm = useCallback(async () => {
     if (!sessionId) return
-    await fetch(`/api/pilot-confirm/${sessionId}`, { method: 'POST' })
+    await confirmPilot(sessionId)
   }, [sessionId])
 
   return (
@@ -80,6 +83,7 @@ export default function App() {
         {selectedCourse && (
           <CourseDrawer
             course={selectedCourse}
+            metadata={courseMetadata}
             onClose={() => setSelectedCourse(null)}
           />
         )}

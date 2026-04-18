@@ -1,12 +1,56 @@
-{
-  "CMSC 441": [
-    {"name": "Dr. Marie desJardins", "rating": 4.2, "difficulty": 4.1},
-    {"name": "Dr. Richard Chang", "rating": 3.9, "difficulty": 4.3}
-  ],
-  "CMSC 341": [
-    {"name": "Dr. Penny Rheingans", "rating": 4.5, "difficulty": 3.8}
-  ],
-  "CMSC 471": [
-    {"name": "Dr. Tim Oates", "rating": 4.6, "difficulty": 3.5}
-  ]
-}
+[
+  {
+    "name": "Konstantinos Kalpakis",
+    "courses_taught": ["CMSC 421", "CMSC 461", "CMSC 641"],
+    "rating": 2.1,
+    "difficulty": 4.6,
+    "would_take_again_pct": 31,
+    "ratings_count": 47,
+    "quote": "Tests are incredibly hard and lectures don't prepare you. Office hours help but exams cover things never discussed in class."
+  },
+  {
+    "name": "Richard Chang",
+    "courses_taught": ["CMSC 441", "CMSC 203"],
+    "rating": 3.9,
+    "difficulty": 4.3,
+    "would_take_again_pct": 72,
+    "ratings_count": 89,
+    "quote": "Tough but fair. Exams are hard but follow the homework closely. Go to every class."
+  },
+  {
+    "name": "Marie desJardins",
+    "courses_taught": ["CMSC 441", "CMSC 671"],
+    "rating": 4.2,
+    "difficulty": 4.1,
+    "would_take_again_pct": 85,
+    "ratings_count": 156,
+    "quote": "Best professor in the department. Explains algorithms intuitively. Very approachable."
+  },
+  {
+    "name": "Tim Oates",
+    "courses_taught": ["CMSC 471", "CMSC 671"],
+    "rating": 4.6,
+    "difficulty": 3.5,
+    "would_take_again_pct": 92,
+    "ratings_count": 203,
+    "quote": "Makes AI genuinely exciting. Homework is involved but you actually learn. 10/10 would retake."
+  },
+  {
+    "name": "Penny Rheingans",
+    "courses_taught": ["CMSC 341", "CMSC 491"],
+    "rating": 4.5,
+    "difficulty": 3.8,
+    "would_take_again_pct": 88,
+    "ratings_count": 134,
+    "quote": "Data Structures is hard but she makes it manageable. Slides are clear, rubrics are fair."
+  },
+  {
+    "name": "Megan Squire",
+    "courses_taught": ["CMSC 447", "CMSC 676"],
+    "rating": 3.8,
+    "difficulty": 3.2,
+    "would_take_again_pct": 76,
+    "ratings_count": 67,
+    "quote": "Very organized class. Group projects are hit or miss depending on your team."
+  }
+]

@@ -1,11 +1,43 @@
 {
-  "minor": "Entrepreneurship",
-  "credits": 15,
-  "courses": [
-    {"id": "ENT 101", "name": "Introduction to Entrepreneurship", "credits": 3, "prereqs": []},
-    {"id": "ENT 215", "name": "Lean Startup Methods", "credits": 3, "prereqs": ["ENT 101"]},
-    {"id": "ENT 310", "name": "Business Model Canvas", "credits": 3, "prereqs": ["ENT 215"]},
-    {"id": "ENT 401", "name": "Venture Funding & Pitching", "credits": 3, "prereqs": ["ENT 310"], "spring_only": true},
-    {"id": "ENT 490", "name": "Startup Studio", "credits": 3, "prereqs": ["ENT 310"]}
-  ]
+  "name": "Entrepreneurship",
+  "total_credits": 15,
+  "required_courses": [
+    {
+      "code": "ENTR 200",
+      "title": "Introduction to Entrepreneurship",
+      "credits": 3,
+      "prereqs": [],
+      "spring_only": false
+    },
+    {
+      "code": "ENTR 310",
+      "title": "Lean Startup & Product-Market Fit",
+      "credits": 3,
+      "prereqs": ["ENTR 200"],
+      "spring_only": false
+    },
+    {
+      "code": "ENTR 360",
+      "title": "Business Model Design",
+      "credits": 3,
+      "prereqs": ["ENTR 310"],
+      "spring_only": false
+    },
+    {
+      "code": "ENTR 450",
+      "title": "Venture Funding & Pitch",
+      "credits": 3,
+      "prereqs": ["ENTR 360"],
+      "spring_only": true
+    },
+    {
+      "code": "ENTR 490",
+      "title": "Startup Studio Capstone",
+      "credits": 3,
+      "prereqs": ["ENTR 450"],
+      "spring_only": false
+    }
+  ],
+  "elective_count": 0,
+  "elective_pool": []
 }
