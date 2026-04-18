@@ -1,43 +1,28 @@
 [
   {
+    "id": "CMSC 426",
+    "name": "Princ Computer Security",
+    "credits": 3,
+    "sections": [
+      {"section": "1-LEC", "class_nbr": "2622", "instructor": "Enis Golaszewski", "days": "TuTh", "time": "2:30pm-3:45pm", "location": "ITE 233", "seats_total": 35, "seats_open": 4}
+    ]
+  },
+  {
     "id": "CMSC 441",
     "name": "Design & Analysis of Algorithms",
     "credits": 3,
     "sections": [
-      {"section": "01", "instructor": "desJardins, Marie", "days": "MWF", "time": "9:00-9:50am", "location": "ITE 239", "seats_total": 35, "seats_open": 0},
-      {"section": "02", "instructor": "Chang, Richard", "days": "TuTh", "time": "11:30am-12:45pm", "location": "ITE 227", "seats_total": 35, "seats_open": 5}
-    ]
-  },
-  {
-    "id": "CMSC 447",
-    "name": "Software Engineering I",
-    "credits": 3,
-    "sections": [
-      {"section": "01", "instructor": "Squire, Megan", "days": "MWF", "time": "10:00-10:50am", "location": "ITE 101", "seats_total": 40, "seats_open": 12}
-    ]
-  },
-  {
-    "id": "CMSC 411",
-    "name": "Computer Architecture",
-    "credits": 3,
-    "sections": [
-      {"section": "01", "instructor": "Bourgeois, Arthur", "days": "TuTh", "time": "2:30-3:45pm", "location": "ITE 239", "seats_total": 30, "seats_open": 3}
-    ]
-  },
-  {
-    "id": "CMSC 471",
-    "name": "Intro to Artificial Intelligence",
-    "credits": 3,
-    "sections": [
-      {"section": "01", "instructor": "Oates, Tim", "days": "MWF", "time": "1:00-1:50pm", "location": "ITE 104", "seats_total": 35, "seats_open": 8}
+      {"section": "100-LEC", "class_nbr": "1579", "instructor": "Paul Burkhardt", "days": "TuTh", "time": "5:30pm-6:45pm", "location": "ITE 227", "seats_total": 35, "seats_open": 6},
+      {"section": "200-LEC", "class_nbr": "1580", "instructor": "Richard Chang", "days": "MWF", "time": "10:00am-10:50am", "location": "ITE 229", "seats_total": 35, "seats_open": 2},
+      {"section": "300-LEC", "class_nbr": "1581", "instructor": "Marie desJardins", "days": "TuTh", "time": "9:00am-10:15am", "location": "ITE 240", "seats_total": 35, "seats_open": 0}
     ]
   },
   {
     "id": "CMSC 461",
-    "name": "Database Management Systems",
+    "name": "Database Mgmt Systems",
     "credits": 3,
     "sections": [
-      {"section": "01", "instructor": "Nicholas, Charles", "days": "TuTh", "time": "10:00-11:15am", "location": "ITE 102", "seats_total": 40, "seats_open": 15}
+      {"section": "02-LEC", "class_nbr": "1444", "instructor": "Konstantin Kalpakis", "days": "TuTh", "time": "1:00pm-2:15pm", "location": "ITE 102", "seats_total": 40, "seats_open": 8}
     ]
   },
   {
@@ -45,7 +30,24 @@
     "name": "Computer Networks",
     "credits": 3,
     "sections": [
-      {"section": "01", "instructor": "Phatak, Dhananjay", "days": "MWF", "time": "11:00-11:50am", "location": "ITE 237", "seats_total": 30, "seats_open": 7}
+      {"section": "01-LEC", "class_nbr": "2444", "instructor": "Ram Rustagi", "days": "MoWe", "time": "8:30am-9:45am", "location": "ITE 237", "seats_total": 30, "seats_open": 5},
+      {"section": "02-LEC", "class_nbr": "2445", "instructor": "Enis Golaszewski", "days": "MoWe", "time": "4:00pm-5:15pm", "location": "ITE 233", "seats_total": 30, "seats_open": 9}
+    ]
+  },
+  {
+    "id": "CMSC 447",
+    "name": "Software Engineering I",
+    "credits": 3,
+    "sections": [
+      {"section": "01-LEC", "class_nbr": "1620", "instructor": "Megan Squire", "days": "MWF", "time": "10:00am-10:50am", "location": "ITE 101", "seats_total": 40, "seats_open": 12}
+    ]
+  },
+  {
+    "id": "CMSC 471",
+    "name": "Intro to Artificial Intelligence",
+    "credits": 3,
+    "sections": [
+      {"section": "01-LEC", "class_nbr": "1700", "instructor": "Tim Oates", "days": "MWF", "time": "1:00pm-1:50pm", "location": "ITE 104", "seats_total": 35, "seats_open": 8}
     ]
   }
 ]
