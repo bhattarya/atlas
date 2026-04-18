@@ -7,18 +7,18 @@ import '@xyflow/react/dist/style.css'
 import { Loader2, Upload, FileText, RotateCcw } from 'lucide-react'
 
 /* ── Layout constants ── */
-const BUBBLE_SIZE = 92          // diameter of circular bubble
-const COL_W = 220               // horizontal distance between year columns
-const ROW_H = 116               // vertical distance between siblings
-const PAD_X = 100               // outer horizontal padding
-const PAD_Y = 90                // outer vertical padding (room for year header)
+const BUBBLE_SIZE = 88          // diameter of circular bubble
+const COL_W = 250               // horizontal distance between year columns
+const ROW_H = 110               // vertical distance between siblings
+const PAD_X = 80                // outer horizontal padding
+const PAD_Y = 80                // outer vertical padding (room for year header)
 
 /* ── Academic year labels for the 4 columns ── */
 const YEAR_LABELS = [
-  { label: 'Freshman', sub: '100 level' },
-  { label: 'Sophomore', sub: '200 level' },
-  { label: 'Junior', sub: '300 level' },
-  { label: 'Senior', sub: '400 level' },
+  { label: 'Freshman', sub: '100-level' },
+  { label: 'Sophomore', sub: '200-level' },
+  { label: 'Junior', sub: '300-level' },
+  { label: 'Senior', sub: '400-level' },
 ]
 
 /* ── Friendlier display label for placeholder elective IDs ── */
@@ -84,12 +84,27 @@ function computeLayout(courses) {
     if (validPrereqs(c).length === 0) visit(c.id, 0, new Set())
   })
 
-  // Group by academic year column (level 1→0, 2→1, 3→2, 4→3, 0/electives→0)
+  // Group by academic year column using course number (100→0, 200→1, 300→2, 400+→3)
+  // Fall back to parsing course code (e.g. "CMSC 341" → 300 → col 2)
   const yearOf = c => {
-    const lvl = c.level ?? 1
-    if (lvl <= 1) return 0
-    if (lvl >= 4) return 3
-    return lvl - 1
+    let lvl = c.level ?? 0
+    if (lvl < 10) {
+      // Old-style 1-4 encoding
+      if (lvl <= 1) return 0
+      if (lvl >= 4) return 3
+      return lvl - 1
+    }
+    // New-style course number (100, 200, 300, 400)
+    if (lvl >= 400) return 3
+    if (lvl >= 300) return 2
+    if (lvl >= 200) return 1
+    if (lvl >= 100) return 0
+    // Last resort: parse from course code string
+    const num = parseInt((c.id ?? '').match(/\d+/)?.[0] ?? '100')
+    if (num >= 400) return 3
+    if (num >= 300) return 2
+    if (num >= 200) return 1
+    return 0
   }
 
   const layerGroups = { 0: [], 1: [], 2: [], 3: [] }
@@ -476,7 +491,7 @@ export default function MapView({ mapData, loading, onCourseSelect, selectedId, 
   const hasManualEdits = Object.keys(manualPositions).length > 0
 
   return (
-    <div className="flex-1 relative" style={{ background: '#fafaf6' }}>
+    <div className="flex-1 relative" style={{ background: '#f8f7f2' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -487,8 +502,8 @@ export default function MapView({ mapData, loading, onCourseSelect, selectedId, 
         onNodeDragStop={handleNodeDragStop}
         onPaneClick={handlePaneClick}
         fitView
-        fitViewOptions={{ padding: 0.12, maxZoom: 1.1 }}
-        minZoom={0.2}
+        fitViewOptions={{ padding: 0.15, maxZoom: 1.0 }}
+        minZoom={0.15}
         maxZoom={2.5}
         proOptions={{ hideAttribution: true }}
         nodesConnectable={false}
@@ -496,10 +511,10 @@ export default function MapView({ mapData, loading, onCourseSelect, selectedId, 
         panOnScroll
         zoomOnScroll={false}
       >
-        <Background color="#dedad2" variant={BackgroundVariant.Dots} gap={22} size={1} />
+        <Background color="#e0ddd6" variant={BackgroundVariant.Dots} gap={24} size={1.2} />
         <Controls
           showInteractive={false}
-          style={{ left: 'auto', right: 12, bottom: 80, top: 'auto', borderRadius: 8, boxShadow: '0 1px 6px rgba(0,0,0,0.08)' }}
+          style={{ left: 'auto', right: 14, bottom: 70, top: 'auto', borderRadius: 10, boxShadow: '0 2px 12px rgba(0,0,0,0.10)', border: '1px solid #e8e7e0' }}
         />
 
         {/* Legend — top-left, matches reference */}
