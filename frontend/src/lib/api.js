@@ -40,3 +40,13 @@ export async function confirmPilot(sessionId) {
   if (!res.ok) throw new Error(`Pilot confirm failed: ${res.status}`)
   return res.json()
 }
+
+export async function validatePlacement(courseCode, semester, currentPlan) {
+  const res = await fetch(`${BASE}/api/validate-placement`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ course_code: courseCode, semester, current_plan: currentPlan }),
+  })
+  if (!res.ok) throw new Error(`Validation failed: ${res.status}`)
+  return res.json()
+}
