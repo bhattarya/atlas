@@ -1,0 +1,12 @@
+{
+  "CMSC 441": [
+    {"name": "Dr. Marie desJardins", "rating": 4.2, "difficulty": 4.1},
+    {"name": "Dr. Richard Chang", "rating": 3.9, "difficulty": 4.3}
+  ],
+  "CMSC 341": [
+    {"name": "Dr. Penny Rheingans", "rating": 4.5, "difficulty": 3.8}
+  ],
+  "CMSC 471": [
+    {"name": "Dr. Tim Oates", "rating": 4.6, "difficulty": 3.5}
+  ]
+}
