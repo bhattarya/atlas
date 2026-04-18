@@ -143,6 +143,10 @@ backend/venv/
 venv/
 __pycache__/
 *.py[cod]
+# Python
+__pycache__/
+*.py[cod]
+venv/
 
 # Demo artifacts
 atlas-demo-backup.mp4
@@ -153,3 +157,9 @@ atlas-demo-backup.mp4
 # Playwright
 playwright-report/
 test-results/
+# Playwright
+playwright-report/
+test-results/
+
+# OS
+.DS_Store

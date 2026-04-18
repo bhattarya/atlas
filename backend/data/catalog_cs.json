@@ -1,0 +1,18 @@
+{
+  "major": "Computer Science",
+  "total_credits": 120,
+  "core": [
+    {"id": "CMSC 201", "name": "Computer Science I", "credits": 4, "prereqs": []},
+    {"id": "CMSC 202", "name": "Computer Science II", "credits": 4, "prereqs": ["CMSC 201"]},
+    {"id": "CMSC 203", "name": "Discrete Structures", "credits": 3, "prereqs": ["MATH 151"]},
+    {"id": "CMSC 313", "name": "Assembly & OS Organization", "credits": 3, "prereqs": ["CMSC 202"]},
+    {"id": "CMSC 331", "name": "Principles of Programming Languages", "credits": 3, "prereqs": ["CMSC 202"]},
+    {"id": "CMSC 341", "name": "Data Structures", "credits": 3, "prereqs": ["CMSC 202", "CMSC 203"]},
+    {"id": "CMSC 411", "name": "Computer Architecture", "credits": 3, "prereqs": ["CMSC 313", "CMSC 341"]},
+    {"id": "CMSC 441", "name": "Design & Analysis of Algorithms", "credits": 3, "prereqs": ["CMSC 341", "CMSC 203"], "spring_only": true},
+    {"id": "CMSC 447", "name": "Software Engineering I", "credits": 3, "prereqs": ["CMSC 341"]},
+    {"id": "CMSC 461", "name": "Database Management Systems", "credits": 3, "prereqs": ["CMSC 341"]},
+    {"id": "CMSC 471", "name": "Introduction to AI", "credits": 3, "prereqs": ["CMSC 341", "CMSC 203"]},
+    {"id": "CMSC 481", "name": "Computer Networks", "credits": 3, "prereqs": ["CMSC 313"]}
+  ]
+}

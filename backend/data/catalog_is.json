@@ -1,0 +1,15 @@
+{
+  "major": "Information Systems",
+  "total_credits": 120,
+  "core": [
+    {"id": "IS 101", "name": "Foundations of Information Systems", "credits": 3, "prereqs": []},
+    {"id": "IS 201", "name": "Object-Oriented Programming for IS", "credits": 3, "prereqs": ["IS 101"]},
+    {"id": "IS 247", "name": "Information Systems Analysis & Design", "credits": 3, "prereqs": ["IS 201"]},
+    {"id": "IS 310", "name": "Database Fundamentals", "credits": 3, "prereqs": ["IS 201"]},
+    {"id": "IS 420", "name": "Systems Integration", "credits": 3, "prereqs": ["IS 247", "IS 310"]},
+    {"id": "IS 450", "name": "Information Security", "credits": 3, "prereqs": ["IS 310"]},
+    {"id": "IS 466", "name": "IT Project Management", "credits": 3, "prereqs": ["IS 247"]},
+    {"id": "IS 480", "name": "Business Intelligence & Analytics", "credits": 3, "prereqs": ["IS 310"], "spring_only": true},
+    {"id": "IS 490", "name": "IS Capstone", "credits": 3, "prereqs": ["IS 420", "IS 466"]}
+  ]
+}
