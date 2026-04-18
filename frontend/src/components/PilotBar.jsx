@@ -1,20 +1,7 @@
-import { useState, useEffect } from 'react'
 import { Zap } from 'lucide-react'
 
-export default function PilotBar({ mapData, onLaunch }) {
-  const [seats, setSeats] = useState(5)
-  const [pulse, setPulse] = useState(false)
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSeats(prev => {
-        const next = Math.max(0, prev - Math.floor(Math.random() * 2))
-        if (next <= 2) setPulse(true)
-        return next
-      })
-    }, 8000)
-    return () => clearInterval(interval)
-  }, [])
+export default function PilotBar({ mapData, seats = 5, onLaunch }) {
+  const pulse = seats <= 2
 
   if (!mapData) return null
 
