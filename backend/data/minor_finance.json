@@ -1,0 +1,12 @@
+{
+  "minor": "Finance",
+  "credits": 18,
+  "courses": [
+    {"id": "FIN 101", "name": "Financial Accounting", "credits": 3, "prereqs": []},
+    {"id": "FIN 210", "name": "Corporate Finance", "credits": 3, "prereqs": ["FIN 101"]},
+    {"id": "FIN 311", "name": "Investments", "credits": 3, "prereqs": ["FIN 210"]},
+    {"id": "FIN 340", "name": "Financial Modeling", "credits": 3, "prereqs": ["FIN 210"]},
+    {"id": "FIN 412", "name": "Derivatives & Risk Management", "credits": 3, "prereqs": ["FIN 311"], "spring_only": true},
+    {"id": "FIN 490", "name": "Finance Capstone", "credits": 3, "prereqs": ["FIN 311", "FIN 340"]}
+  ]
+}
