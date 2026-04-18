@@ -1,12 +1,16 @@
 """Build the Atlas finalized-schedule PDF using ReportLab."""
 from io import BytesIO
 from datetime import datetime
+from pathlib import Path
 from typing import List
 
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.units import inch
 from reportlab.lib.colors import HexColor, black, white
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
+
+MASCOT_PATH = Path(__file__).parent.parent / "data" / "atlas-mascot.png"
 
 
 GOLD = HexColor("#FFC300")
@@ -31,12 +35,25 @@ def build_schedule_pdf(
     c.setFillColor(GOLD)
     c.rect(0, H - 1.2 * inch, W, 1.2 * inch, fill=1, stroke=0)
 
-    # Wordmark
+    # Mascot logo
+    logo_size = 0.95 * inch
+    logo_x = 0.35 * inch
+    logo_y = H - 1.1 * inch
+    if MASCOT_PATH.exists():
+        c.drawImage(
+            ImageReader(str(MASCOT_PATH)),
+            logo_x, logo_y,
+            width=logo_size, height=logo_size,
+            preserveAspectRatio=True, mask='auto',
+        )
+
+    # Wordmark (shifted right of mascot)
+    text_x = logo_x + logo_size + 0.15 * inch
     c.setFillColor(black)
     c.setFont("Helvetica-Bold", 28)
-    c.drawString(0.6 * inch, H - 0.75 * inch, "ATLAS")
+    c.drawString(text_x, H - 0.75 * inch, "ATLAS")
     c.setFont("Helvetica", 10)
-    c.drawString(0.6 * inch, H - 0.95 * inch, "UMBC COEIT  ·  Registration Co-Pilot")
+    c.drawString(text_x, H - 0.95 * inch, "UMBC COEIT  ·  Registration Co-Pilot")
 
     # Right-aligned term
     c.setFont("Helvetica-Bold", 14)
